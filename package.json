@@ -1,0 +1,21 @@
+{
+  "name": "load-tester",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js"
+  },
+  "keywords": [],
+  "author": "Luis Felipe Felix Filho",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^13.1.0",
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@types/commander": "^2.12.5",
+    "@types/node": "^22.13.9"
+  }
+}
