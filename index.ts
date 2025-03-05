@@ -86,6 +86,23 @@ function makeRequest(url: string): Promise<RequestStat> {
 }
 
 /**
+ * Função para auxiliar o mínimo, máximo e a média de um array de números
+ */
+
+function calcStats(values: number[]): {min: number, max: number, avg: number} {
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const sum = values.reduce((acc, v) => acc + v, 0);
+
+  return {
+    min, 
+    max,
+    avg: sum / values.length
+  };
+}
+
+
+/**
  * Executa o teste de carga:
  * - Se for apenas uma requisição (n=1, c=1) exibe o código de resposta
  * - Caso o contrário, executa as requisições entre workers concorrentes e exibe o tempo total
@@ -95,6 +112,7 @@ function makeRequest(url: string): Promise<RequestStat> {
 async function runLoadTest() {
     const stats: RequestStat[] = []
     const statusCounts: { [key: string]: number } = {};
+    const testStartTime = Date.now();
     let requestsSent = 0;
 
     async function worker() {
@@ -120,20 +138,33 @@ async function runLoadTest() {
          workers.push(worker());
     }
     await Promise.all(workers);
+    const totalEndTime = Date.now();
+    // Calculo do tempo total do teste e das requisições por segundo
+    const totalTestTimeSeconds = (testStartTime - totalEndTime) / 1000;
+    const requestsPerSecond = (numRequests / totalTestTimeSeconds);
 
-    // Exibe as estatísticas detalhadas de cada requisição
-    console.log("Estatísticas de cada requisição:");
-    stats.forEach((s, index) => {
-    console.log(`\nRequisição ${index + 1}:`);
-    if (s.error) {
-      console.log(`  Erro: ${s.error}`);
-    } else {
-      console.log(`  Código de resposta: ${s.statusCode}`);
-      console.log(`  Tempo total: ${s.totalTime}ms`);
-      console.log(`  Tempo até o primeiro byte: ${s.timeToFirstByte}ms`);
-      console.log(`  Tempo do primeiro ao último byte: ${s.timeToLastByte}ms`);
-    }
-  });
+    // Contabiliza as requisições bem sucedidas e as que falharam
+    const successCount = stats.filter((s) => s.statusCode !== undefined && s.statusCode >= 200 && s.statusCode < 300).length;
+    const failedCount = stats.length - successCount;
+
+    // Contabiliza as requisições bem sucedidas (status: 2XX) e as que falharam
+    const totalTimes = stats.map((s) => s.totalTime/1000);
+    const ttfbTimes = stats.filter((s) => s.timeToFirstByte !== undefined).map((s) => (s.timeToFirstByte as number) / 1000);
+    const ttlbTimes = stats.filter((s) => s.timeToLastByte !== undefined).map((s) => (s.timeToLastByte as number)/1000);
+
+    const totalTimeStats = calcStats(totalTimes);
+    const ttfbStats = calcStats(ttfbTimes);
+    const ttlbStats = calcStats(ttlbTimes);
+
+    // Exibe o resumo no formato solicitado
+    console.log("\nResults:");
+    console.log(` Total Requests (2XX).......................: ${successCount}`);
+    console.log(` Failed Requests (5XX)......................: ${failedCount}`);
+    console.log(` Request/second.............................: ${requestsPerSecond.toFixed(2)}`);
+    console.log("");
+    console.log(`Total Request Time (s) (Min, Max, Mean).....: ${totalTimeStats.min.toFixed(2)}, ${totalTimeStats.max.toFixed(2)}, ${totalTimeStats.avg.toFixed(2)}`);
+    console.log(`Time to First Byte (s) (Min, Max, Mean).....: ${ttfbStats.min.toFixed(2)}, ${ttfbStats.max.toFixed(2)}, ${ttfbStats.avg.toFixed(2)}`);
+    console.log(`Time to Last Byte (s) (Min, Max, Mean)......: ${ttlbStats.min.toFixed(2)}, ${ttlbStats.max.toFixed(2)}, ${ttlbStats.avg.toFixed(2)}`);
 }
 // Se for apenas uma requisição (n=1, c=1) exibe o código de resposta
 // Caso contrário, executa as requisições entre workers concorrentes
@@ -144,15 +175,14 @@ if (numRequests === 1 && concurrency === 1) {
         if (stat.error) {
           console.log(`Erro: ${stat.error}`);
         } else {
-          console.log(`Código de resposta: ${stat.statusCode}`);
-          console.log(`Tempo total: ${stat.totalTime}ms`);
-          console.log(`Tempo até o primeiro byte: ${stat.timeToFirstByte}ms`);
-          console.log(`Tempo do primeiro ao último byte: ${stat.timeToLastByte}ms`);
+          console.log(` Código de resposta: ${stat.statusCode}`);
+          console.log(` Tempo total: ${(stat.totalTime / 1000).toFixed(2)}s`);
+          console.log(` Tempo até o primeiro byte: ${stat.timeToFirstByte ? (stat.timeToFirstByte / 1000).toFixed(2) : "N/A"}s`);
+          console.log(` Tempo do primeiro ao último byte: ${stat.timeToLastByte ? (stat.timeToLastByte / 1000).toFixed(2) : "N/A"}s`);
         }
     }).catch((err) => {
-            console.error('Falha na requisição:', err);
+        console.error('Falha na requisição:', err);
     });
-  } else {
-    runLoadTest();
-  }
-
+} else {
+  runLoadTest();
+}
