@@ -1,30 +1,9 @@
 #! /usr/bin/env node
+import { http, https} from 'follow-redirects'
+import * as readline from 'readline';
+import { URL } from 'url';
+import * as minimist from 'minimist';
 
-import { Command } from "commander";
-import * as http from 'http';
-import * as https from 'https';
-
-
-const program = new Command();
-
-program
-    .option('-u, --url <url>', 'URL a ser testada')
-    .option('-n, --requests <number>', 'Número de requisições', parseInt)
-    .option('-c, --concurrency <number>', 'Número de requisições concorrentes', parseInt);
-
-program.parse(process.argv);
-
-const options = program.opts();
-
-// Permite que a URL seja passada como arguemento posicional se não for informada como -u 
-const targetUrl = options.url || program.args[0];
-if(!targetUrl) {
-    console.error('Error: URL não informada');
-    process.exit(1);
-}
-
-const numRequests = parseInt(options.requests, 10);
-const concurrency = parseInt(options.concurrency, 10);
 
 /**
  * Interface para analise de estatísticas
@@ -52,6 +31,7 @@ function makeRequest(url: string): Promise<RequestStat> {
     return new Promise((resolve, reject) => {
         const startTime = Date.now();
         const urlObject = new URL(url);
+        // console.log('Protocolo da URL:', urlObject.protocol);
         const lib = urlObject.protocol === 'https: '? https : http;
         let firstByteTime: number | null = null;
 
@@ -68,7 +48,7 @@ function makeRequest(url: string): Promise<RequestStat> {
                     statusCode: res.statusCode || 0,
                     totalTime,
                     timeToFirstByte: firstByteTime ? firstByteTime - startTime : undefined,
-                    timeToLastByte: endTime - startTime
+                    timeToLastByte: firstByteTime ? endTime - firstByteTime : undefined,
                 }
                 resolve(stat);
             });
@@ -101,88 +81,141 @@ function calcStats(values: number[]): {min: number, max: number, avg: number} {
   };
 }
 
-
 /**
- * Executa o teste de carga:
- * - Se for apenas uma requisição (n=1, c=1) exibe o código de resposta
- * - Caso o contrário, executa as requisições entre workers concorrentes e exibe o tempo total
- * - Ao final, exibe um resumo com a quantidade de requisições bem sucedidas e falhas
+ * Interface do resumo dos resultados dos testes
  */
 
-async function runLoadTest() {
-    const stats: RequestStat[] = []
-    const statusCounts: { [key: string]: number } = {};
-    const testStartTime = Date.now();
-    let requestsSent = 0;
-
-    async function worker() {
-        while (true) {
-            // Verifica se atingimos o número total de requisições
-            if (requestsSent >= numRequests) break;
-            requestsSent++;
-      
-            const stat = await makeRequest(targetUrl);
-            stats.push(stat);
-      
-            // Conta o status (se houver erro, usamos a chave "error")
-            if (stat.statusCode !== undefined) {
-              statusCounts[stat.statusCode] = (statusCounts[stat.statusCode] || 0) + 1;
-            } else {
-              statusCounts["error"] = (statusCounts["error"] || 0) + 1;
-            }
-        }
-    }
-
-    const workers: Promise<void>[] = [];
-    for (let i = 0; i < concurrency; i++) {
-         workers.push(worker());
-    }
-    await Promise.all(workers);
-    const totalEndTime = Date.now();
-    // Calculo do tempo total do teste e das requisições por segundo
-    const totalTestTimeSeconds = (testStartTime - totalEndTime) / 1000;
-    const requestsPerSecond = (numRequests / totalTestTimeSeconds);
-
-    // Contabiliza as requisições bem sucedidas e as que falharam
-    const successCount = stats.filter((s) => s.statusCode !== undefined && s.statusCode >= 200 && s.statusCode < 300).length;
-    const failedCount = stats.length - successCount;
-
-    // Contabiliza as requisições bem sucedidas (status: 2XX) e as que falharam
-    const totalTimes = stats.map((s) => s.totalTime/1000);
-    const ttfbTimes = stats.filter((s) => s.timeToFirstByte !== undefined).map((s) => (s.timeToFirstByte as number) / 1000);
-    const ttlbTimes = stats.filter((s) => s.timeToLastByte !== undefined).map((s) => (s.timeToLastByte as number)/1000);
-
-    const totalTimeStats = calcStats(totalTimes);
-    const ttfbStats = calcStats(ttfbTimes);
-    const ttlbStats = calcStats(ttlbTimes);
-
-    // Exibe o resumo no formato solicitado
-    console.log("\nResults:");
-    console.log(` Total Requests (2XX).......................: ${successCount}`);
-    console.log(` Failed Requests (5XX)......................: ${failedCount}`);
-    console.log(` Request/second.............................: ${requestsPerSecond.toFixed(2)}`);
-    console.log("");
-    console.log(`Total Request Time (s) (Min, Max, Mean).....: ${totalTimeStats.min.toFixed(2)}, ${totalTimeStats.max.toFixed(2)}, ${totalTimeStats.avg.toFixed(2)}`);
-    console.log(`Time to First Byte (s) (Min, Max, Mean).....: ${ttfbStats.min.toFixed(2)}, ${ttfbStats.max.toFixed(2)}, ${ttfbStats.avg.toFixed(2)}`);
-    console.log(`Time to Last Byte (s) (Min, Max, Mean)......: ${ttlbStats.min.toFixed(2)}, ${ttlbStats.max.toFixed(2)}, ${ttlbStats.avg.toFixed(2)}`);
+interface Summary {
+  successCount: number;
+  failedCount: number;
+  requestsPerSecond: number;
+  totalTime: {min: number, max: number, avg: number};
+  timeToFirstByte: {min: number, max: number, avg: number}
+  timeToLastByte: {min: number, max: number, avg: number}
 }
-// Se for apenas uma requisição (n=1, c=1) exibe o código de resposta
-// Caso contrário, executa as requisições entre workers concorrentes
-if (numRequests === 1 && concurrency === 1) {
-    makeRequest(targetUrl)
-      .then((stat) => {
-        console.log("Estatísticas da requisição:");
-        if (stat.error) {
-          console.log(`Erro: ${stat.error}`);
-        } else {
-          console.log(` Código de resposta: ${stat.statusCode}`);
-          console.log(` Tempo total: ${(stat.totalTime / 1000).toFixed(2)}s`);
-          console.log(` Tempo até o primeiro byte: ${stat.timeToFirstByte ? (stat.timeToFirstByte / 1000).toFixed(2) : "N/A"}s`);
-          console.log(` Tempo do primeiro ao último byte: ${stat.timeToLastByte ? (stat.timeToLastByte / 1000).toFixed(2) : "N/A"}s`);
-        }
-    }).catch((err) => {
-        console.error('Falha na requisição:', err);
+
+/**
+ * Executa o teste de carga com os parâmetros informados e retorna um resumo
+ */
+
+async function runLoadTest(targetUrl: string, numRequests: number, concurrency: number): Promise<Summary> {
+  const stats: RequestStat[] = [];
+  let requestSent = 0;
+  const testStartTime = Date.now();
+
+  async function worker() {
+    while (requestSent < numRequests) {
+      requestSent ++;
+      const stat = await makeRequest(targetUrl);
+      stats.push(stat);
+    }
+  }
+
+  const workers: Promise<void> [] = [];
+  for (let i = 0; i < concurrency; i++) {
+    workers.push(worker());
+  }
+
+  await Promise.all(workers);
+  const testEndTime = Date.now();
+
+  const totalTestTimeSeconds = (testEndTime - testStartTime) / 1000;
+  const requestsPerSecond = numRequests / totalTestTimeSeconds;
+
+  const successCount = stats.filter(s => s.statusCode !== undefined && s.statusCode >= 200 && s.statusCode < 300).length;
+  const failedCount = stats.length - successCount;
+
+  const totalTimes = stats.map(s => s.totalTime / 1000);
+  const ttfbTimes = stats.filter(s => s.timeToFirstByte !== undefined).map(s => (s.timeToFirstByte as number) / 1000);
+  const ttlbTimes = stats.filter(s => s.timeToLastByte !== undefined).map(s => (s.timeToLastByte as number) / 1000);
+
+  return {
+    successCount,
+    failedCount,
+    requestsPerSecond,
+    totalTime: calcStats(totalTimes),
+    timeToFirstByte: calcStats(ttfbTimes),
+    timeToLastByte: calcStats(ttlbTimes)
+  };
+  
+}
+
+/**
+ * Exibir o resumo dos resultados
+*/
+function printSummary(summary: Summary): void {
+  console.log("\nResults:");
+  console.log(` Total Requests (2XX).......................: ${summary.successCount}`);
+  console.log(` Failed Requests (5XX)......................: ${summary.failedCount}`);
+  console.log(` Request/second.............................: ${summary.requestsPerSecond.toFixed(2)}`);
+  console.log("");
+  console.log(`Total Request Time (s) (Min, Max, Mean).....: ${summary.totalTime.min.toFixed(2)}, ${summary.totalTime.max.toFixed(2)}, ${summary.totalTime.avg.toFixed(2)}`);
+  console.log(`Time to First Byte (s) (Min, Max, Mean).....: ${summary.timeToFirstByte.min.toFixed(2)}, ${summary.timeToFirstByte.max.toFixed(2)}, ${summary.timeToFirstByte.avg.toFixed(2)}`);
+  console.log(`Time to Last Byte (s) (Min, Max, Mean)......: ${summary.timeToLastByte.min.toFixed(2)}, ${summary.timeToLastByte.max.toFixed(2)}, ${summary.timeToLastByte.avg.toFixed(2)}`);
+}
+
+function printHelp(): void {
+  console.log("\nOpções disponíveis:");
+  console.log("  -u, --url           URL a ser testada (obrigatório)");
+  console.log("  -n, --requests      Número de requisições a fazer (padrão: 10)");
+  console.log("  -c, --concurrency   Número de requisições concorrentes (padrão: 1)");
+  console.log("  help                Exibe este menu de ajuda");
+  console.log("  exit ou quit        Encerra o programa\n");
+}
+
+function startREPL() {
+  const rl = readline.createInterface({
+    input: process.stdin,
+    output: process.stdout,
+    prompt: 'ccload$ '
+  });
+  console.log("Digite os comandos (exemplo: -u http://localhost:8000 -n 100 -c 10). Para sair, digite 'exit'.");
+  rl.prompt();
+
+  rl.on('line', async (line: string) => {
+    const input = line.trim();
+    if(input.toLowerCase() === "help"){
+      printHelp();
+      rl.prompt();
+      return;
+    }
+    if (input === '' || input === 'exit' || input === 'quit') {
+      rl.close();
+      return;
+    }
+
+    // Usa minimist para converter string em argumentos
+    const args = minimist(input.split(/\s+/), {
+      alias: {u: 'url', n: 'requests', c: 'concurrency'},
+      default: {requests: '10', concurrency: '1'}
     });
-} else {
-  runLoadTest();
+
+    const targetUrl = args.url;
+    if (!targetUrl) {
+      console.log("Erro: é necessário informar a opção -u ou --url");
+      rl.prompt();
+      return;
+    }
+
+    const numRequests = parseInt(args.requests, 10);
+    const concurrency = parseInt(args.concurrency, 10);
+
+    console.log(`\nExecutando teste em ${targetUrl} com ${numRequests} requisições e ${concurrency} concorrentes...`);
+
+    try {
+      const summary = await runLoadTest(targetUrl, numRequests, concurrency);
+      printSummary(summary);
+    } catch (error) {
+      console.error("Erro ao executar o teste:", error.message);
+    }
+    console.log(""); // Pula uma linha para separar os resultados;
+    rl.prompt();
+  });
+
+  rl.on('close', () => {
+    console.log("Encerrando o ccload. Até a próxima!");
+    process.exit(0);
+  })
 }
+
+startREPL();
