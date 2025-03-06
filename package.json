@@ -12,7 +12,9 @@
   "license": "ISC",
   "dependencies": {
     "commander": "^13.1.0",
-    "express": "^4.21.2"
+    "express": "^4.21.2",
+    "follow-redirects": "^1.15.9",
+    "minimist": "^1.2.8"
   },
   "devDependencies": {
     "@types/commander": "^2.12.5",
