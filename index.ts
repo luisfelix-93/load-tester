@@ -208,24 +208,24 @@ function startREPL() {
 
     // Usa minimist para converter string em argumentos
     const tokens = input.match(/(".*?"|'.*?'|\S+)/g) || [];
-  const args = minimist(
-    tokens.map((token) => token.replace(/^['"]|['"]$/g, '')), // Remove as aspas externas
-    { 
-      alias: { 
-        u: 'url', 
-        n: 'requests', 
-        c: 'concurrency',
-        m: 'method',
-        b: 'body'
-      },
-      default: { 
-        requests: '10', 
-        concurrency: '1',
-        method: 'GET'
-      },
-      string: ['body'] // Garante que o body seja tratado como string
-    }
-);
+    const args = minimist(
+      tokens.map((token) => token.replace(/^['"]|['"]$/g, '')), // Remove as aspas externas
+      { 
+        alias: { 
+          u: 'url', 
+          n: 'requests', 
+          c: 'concurrency',
+          m: 'method',
+          b: 'body'
+        },
+        default: { 
+          requests: '10', 
+          concurrency: '1',
+          method: 'GET'
+        },
+        string: ['body'] // Garante que o body seja tratado como string
+      }
+    );
 
     const targetUrl = args.url;
     if (!targetUrl) {
