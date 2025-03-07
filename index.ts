@@ -18,71 +18,51 @@ interface RequestStat {
 }
 
 /**
- * Realiza a requisição, GET como padrão, porém com a possibilidade de outros métodos HTTP, 
- * e suporte para corpo de requisição.
- * Calcula o tempo de cada requisição feita
+ * Realiza uma requisição GET para a URL informada e retorna uma Promise
+ * que resolve com o código de status HTTP da resposta
+ * e coleta as seguintes estatísticas:
+ * - Tempo total da requisição
+ * - Tempo até o primeiro byte
+ * - Tempo até o último byte
+ * Em caso de erro, a estatística conterá a propriedade error
  */
 
-function makeRequest (url: string, method: string = 'GET', body?: string): Promise<RequestStat> {
-  return new Promise((resolve, reject) => {
-    const startTime = Date.now();
-    const urlObj = new URL(url);
+function makeRequest(url: string): Promise<RequestStat> {
+    return new Promise((resolve, reject) => {
+        const startTime = Date.now();
+        const urlObject = new URL(url);
+        // console.log('Protocolo da URL:', urlObject.protocol);
+        const lib = urlObject.protocol === 'https:'? https : http;
+        let firstByteTime: number | null = null;
 
-    const lib = urlObj.protocol === 'https:'? https : http;
-    let firstByteTime: number | null = null;
+        const req = lib.get(urlObject, (res) => {
+            res.on('data', () => {
+                if (firstByteTime === null) {
+                    firstByteTime = Date.now();
+                }
+            });
+            res.on('end', () => {
+                const endTime = Date.now();
+                const totalTime = endTime - startTime;
+                const stat: RequestStat = {
+                    statusCode: res.statusCode || 0,
+                    totalTime,
+                    timeToFirstByte: firstByteTime ? firstByteTime - startTime : undefined,
+                    timeToLastByte: firstByteTime ? endTime - firstByteTime : undefined,
+                }
+                resolve(stat);
+            });
 
-    // Confuigurar  headers se houver corpo na requisição
-
-    const headers: Record<string, string> = {}
-    if (body) {
-      try {
-        headers['Content-Type'] = 'application/json';
-        headers['Content-Length'] = Buffer.byteLength(body).toString();
-      } catch (error) {
-        console.error("Erro: corpo inválido. Detalhes:", error.message);
-        process.exit(1);
-      }
-    }
-
-    // Cria o objeto de requisição
-    const options = { method, headers};
-
-    const req = lib.request(urlObj, options, (res) => {
-      res.on('data', () => {
-        if (firstByteTime === null) {
-          firstByteTime = Date.now();
-        }
-      });
-      res.on('end', () => {
-        const endTime = Date.now();
-        const totalTime = endTime - startTime;
-        resolve({
-          statusCode: res.statusCode || 0,
-          totalTime,
-          timeToFirstByte: firstByteTime ? firstByteTime - startTime : undefined,
-          timeToLastByte: firstByteTime ? endTime - firstByteTime : undefined,
+            res.on('error', (error) => {
+                const endTime = Date.now();
+                const stat: RequestStat = {
+                error: error.message,
+                totalTime: endTime - startTime,
+            };
+            resolve(stat);
+            });
         });
-      });
-      res.on('error', (error) => {
-        const endTime = Date.now();
-        const totalTime = endTime - startTime;
-        resolve({
-          statusCode: res.statusCode || 0,
-          totalTime,
-          error: error.message
-        });
-      });
-  
-    })
-    req.on('error', (error) => {
-      const endTime = Date.now();
-      reject(error); // ← Rejeita a Promise
-    })
-    if (body) {
-      req.write(body);
-    }
-    req.end();
-  })
+    });
 }
 
 /**
@@ -118,7 +98,7 @@ interface Summary {
  * Executa o teste de carga com os parâmetros informados e retorna um resumo
  */
 
-async function runLoadTest(targetUrl: string, numRequests: number, concurrency: number, method: string = 'GET', body?: string): Promise<Summary> {
+async function runLoadTest(targetUrl: string, numRequests: number, concurrency: number): Promise<Summary> {
   const stats: RequestStat[] = [];
   let requestSent = 0;
   const testStartTime = Date.now();
@@ -126,7 +106,7 @@ async function runLoadTest(targetUrl: string, numRequests: number, concurrency: 
   async function worker() {
     while (requestSent < numRequests) {
       requestSent ++;
-      const stat = await makeRequest(targetUrl, method, body);
+      const stat = await makeRequest(targetUrl);
       stats.push(stat);
     }
   }
@@ -179,8 +159,6 @@ function printHelp(): void {
   console.log("  -u, --url           URL a ser testada (obrigatório)");
   console.log("  -n, --requests      Número de requisições a fazer (padrão: 10)");
   console.log("  -c, --concurrency   Número de requisições concorrentes (padrão: 1)");
-  console.log("  -m, --method        Método HTTP (padrão: GET)");
-  console.log("  -b, --body          Corpo da requisição (opcional)");
   console.log("  help                Exibe este menu de ajuda");
   console.log("  exit ou quit        Encerra o programa\n");
 }
@@ -191,7 +169,7 @@ function startREPL() {
     output: process.stdout,
     prompt: 'ccload$ '
   });
-  console.log("Digite os comandos (exemplo: -u http://localhost:8000 -n 100 -c 10 -m GET). Para sair, digite 'exit'.");
+  console.log("Digite os comandos (exemplo: -u http://localhost:8000 -n 100 -c 10). Para sair, digite 'exit'.");
   rl.prompt();
 
   rl.on('line', async (line: string) => {
@@ -207,25 +185,10 @@ function startREPL() {
     }
 
     // Usa minimist para converter string em argumentos
-    const tokens = input.match(/(".*?"|'.*?'|\S+)/g) || [];
-    const args = minimist(
-      tokens.map((token) => token.replace(/^['"]|['"]$/g, '')), // Remove as aspas externas
-      { 
-        alias: { 
-          u: 'url', 
-          n: 'requests', 
-          c: 'concurrency',
-          m: 'method',
-          b: 'body'
-        },
-        default: { 
-          requests: '10', 
-          concurrency: '1',
-          method: 'GET'
-        },
-        string: ['body'] // Garante que o body seja tratado como string
-      }
-    );
+    const args = minimist(input.split(/\s+/), {
+      alias: {u: 'url', n: 'requests', c: 'concurrency'},
+      default: {requests: '10', concurrency: '1'}
+    });
 
     const targetUrl = args.url;
     if (!targetUrl) {
@@ -236,13 +199,11 @@ function startREPL() {
 
     const numRequests = parseInt(args.requests, 10);
     const concurrency = parseInt(args.concurrency, 10);
-    const method = args.method.toUpperCase();
-    const body = args.body;
 
     console.log(`\nExecutando teste em ${targetUrl} com ${numRequests} requisições e ${concurrency} concorrentes...`);
 
     try {
-      const summary = await runLoadTest(targetUrl, numRequests, concurrency, method, body);
+      const summary = await runLoadTest(targetUrl, numRequests, concurrency);
       printSummary(summary);
     } catch (error) {
       console.error("Erro ao executar o teste:", error.message);
