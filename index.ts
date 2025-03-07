@@ -32,7 +32,7 @@ function makeRequest(url: string): Promise<RequestStat> {
         const startTime = Date.now();
         const urlObject = new URL(url);
         // console.log('Protocolo da URL:', urlObject.protocol);
-        const lib = urlObject.protocol === 'https: '? https : http;
+        const lib = urlObject.protocol === 'https:'? https : http;
         let firstByteTime: number | null = null;
 
         const req = lib.get(urlObject, (res) => {
@@ -179,7 +179,7 @@ function startREPL() {
       rl.prompt();
       return;
     }
-    if (input === '' || input === 'exit' || input === 'quit') {
+    if (input === '' || input === 'exit'.toLowerCase() || input === 'quit'.toLowerCase()) {
       rl.close();
       return;
     }
