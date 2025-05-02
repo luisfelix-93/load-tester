@@ -1,0 +1,6 @@
+[submodule "load-tester-api"]
+	path = load-tester-api
+	url = https://github.com/luisfelix-93/load-tester-api
+[submodule "load-tester-app"]
+	path = load-tester-app
+	url = https://github.com/luisfelix-93/load-tester-app
