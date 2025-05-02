@@ -1,0 +1,23 @@
+version: '3.9'
+services:
+  loadtest-api:
+    image: luisffilho/load-tester-api:latest
+    container_name: loadtest-api
+    ports:
+      - "4000:4000"
+    networks:
+      - loadtest-net
+
+  loadtest-app:
+    image: luisffilho/load-tester-app:latest
+    container_name: loadtest-app
+    ports:
+      - "5173:5173"
+    networks:
+      - loadtest-net
+    depends_on:
+      - loadtest-api
+
+networks:
+  loadtest-net:
+    driver: bridge

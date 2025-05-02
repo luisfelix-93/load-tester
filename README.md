@@ -1,80 +1,151 @@
-# Load Tester
+# 💫 Load Tester - Ferramenta de Teste de Carga
 
-Uma ferramenta de teste de carga desenvolvida em TypeScript/Node.js que permite enviar requisições HTTP(S) de forma concorrente para um endpoint, coletando estatísticas como tempo total, tempo até o primeiro byte e tempo entre o primeiro e o último byte. A aplicação suporta múltiplos métodos HTTP (GET, POST, PUT, DELETE, etc.) e possibilita o envio de um body para requisições que o suportem, tudo via um ambiente interativo (REPL).
+Este projeto é uma aplicação de teste de carga desenvolvida com **React**, **TailwindCSS** e **ShadCN UI** no frontend, e uma API em **Node.js**/**TypeScript** no backend.
 
-## Features
+A ferramenta permite enviar um número configurável de requisições HTTP para uma URL alvo e visualizar estatísticas e gráficos de desempenho.
 
-- **Suporte a Múltiplos Métodos HTTP:** Permite testar endpoints com GET, POST, PUT, DELETE e outros.
-- **Envio de Body:** Possibilita enviar um payload (JSON ou outro) em requisições (ex.: POST).
-- **Estatísticas de Requisições:** Coleta e exibe:
-  - Tempo total da requisição
-  - Tempo até o primeiro byte
-  - Tempo entre o primeiro e o último byte
-- **Ambiente Interativo (REPL):** Execute testes diretamente via linha de comando.
-- **Relatório Resumido:** Exibe contagem de requisições bem-sucedidas, falhas e taxa de requisições por segundo.
-- **Suporte a Redirecionamentos:** Utiliza o módulo [follow-redirects](https://www.npmjs.com/package/follow-redirects) para lidar com redirecionamentos automaticamente.
-- **Execução via Docker:** Contém um Dockerfile para facilitar a execução do projeto em containers.
+---
 
-## Requisitos
+## ✨ Funcionalidades
 
-- Node.js (versão 16 ou superior)
-- npm
-- (Opcional) Docker, se preferir rodar a aplicação via container
+- Configuração personalizada de:
+  - URL alvo
+  - Número de requisições
+  - Nível de concorrência
+- Exibição de resultados:
+  - Número de sucessos e falhas
+  - Tempo total de resposta (mínimo, médio e máximo)
+  - Tempo para o primeiro e último byte
+- Gráficos:
+  - Status code por requisição
+  - Tempo de resposta por requisição
+- Interface responsiva e moderna com **TailwindCSS** + **ShadCN UI**
 
-## Instalação
+---
 
-1. Clone o repositório:
+## 📦 Tecnologias Utilizadas
 
-   ```bash
-   git clone <https://github.com/luisfelix-93/load-tester>
-   cd load-tester
-   ```
-2. Instale as dependências:
-   ```bash
-   npm install
-   ```
-3. Compile o projeto (caso não utilize o ts-node):
-   ```bash
-   npm run build
-   ```
-## Uso
-### Execução local
-- Para iniciar, execute:
-  ```bash
-  npm run start
-  ```
-Isso iniciará o ambiente interativo (REPL) com o prompt ccload$.
-#### Exemplos de comando
-  - **Teste com GET:**
-  ```bash
-  -u https://localhost:8000 -n 100 -c 10
-  ```
-  - **Teste com POST:**
-  ```bash
-  -u https://localhost:8000/api -n 50 -c 5 -m POST -b '{"nome":"valor"}'
-  ```
-  - **Exibir ajuda:**
-  ```bash
-  help
-  ```
-  - **Sair da aplicação:**
-  ```bash
-  exit
-  ```
-### Execução via Docker
-Um Dockerfile está incluído para facilitar a execução da aplicação em container.
+- **Frontend**
+  - React + Vite
+  - TypeScript
+  - TailwindCSS
+  - ShadCN UI
+  - Axios (para chamadas HTTP)
+  - React Router DOM (navegação)
 
-  - **Construa a imagem Docker:**
-  ```bash
-  docker build -t load-tester .
-  ```
+- **Backend**
+  - Node.js
+  - TypeScript
+  - Express
+  - Load testing engine próprio
 
-  - **Execute o container de forma interativa:**
-  ```bash
-  docker run -it load-tester
-  ```
-Isso abrirá o REPL dentro do container, permitindo que você teste os endpoints conforme os exemplos acima.
+---
 
-# Contribuição
+## 🚀 Como Rodar o Projeto
 
-Sinta-se à vontade para abrir issues ou enviar pull requests para contribuir com melhorias ou novas funcionalidades.
+### Pré-requisitos
+
+- [Node.js](https://nodejs.org/) v18+
+- [Yarn](https://yarnpkg.com/) ou [npm](https://www.npmjs.com/)
+
+OU
+- Docker
+
+---
+
+### 1. Clonar o Repositório
+
+```bash
+git clone https://github.com/luisfelix-93/load-tester-app.git
+cd load-tester
+```
+
+---
+
+### 2. Rodar o Backend
+
+```bash
+cd backend
+yarn install
+yarn dev
+```
+
+O backend será iniciado na porta `4000`.
+
+---
+
+### 3. Rodar o Frontend
+
+Em outra aba/terminal:
+
+```bash
+cd frontend
+yarn install
+yarn dev
+```
+
+O frontend será iniciado na porta `5173`.
+
+---
+
+### 4. Rodar via Docker-Compose
+
+```bash
+$ docker-compose up -d
+```
+
+## 🖥️ Estrutura do Frontend
+
+```
+src/
+ ├── api/               # Serviços de chamada HTTP
+ ├── components/        # Componentes reutilizáveis (Cards, Charts, etc.)
+ ├── pages/
+ │    ├── Home/         # Página para iniciar o teste
+ │    └── Resumo/       # Página para visualizar resultados
+ └── App.tsx            # Configuração de rotas
+```
+
+---
+
+## 📈 Exemplo de Fluxo de Uso
+
+1. Acesse a página inicial.
+2. Informe a URL alvo, o número de requisições e a concorrência desejada.
+3. Inicie o teste.
+4. Veja o resumo dos resultados, incluindo gráficos de desempenho.
+
+---
+
+## 🛠️ Melhorias Futuras
+
+- Suporte a testes POST/PUT (envio de payloads)
+- Testes de autenticação (JWT, Basic Auth)
+- Implementação de filas de teste para múltiplos usuários
+- Resultados dos testes ao vivo
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a licença MIT.  
+Sinta-se livre para usar, modificar e contribuir!
+
+---
+
+# ⚡ Desenvolvido por
+
+Luis Felipe Felix Filho  
+[LinkedIn](https://www.linkedin.com/in/luis-felix-filho/) • [GitHub](https://github.com/luisfelix-93)
+
+---
+
+## Extras (se quiser adicionar badges)
+
+```markdown
+![React](https://img.shields.io/badge/React-18.x-blue)
+![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
+![TypeScript](https://img.shields.io/badge/TypeScript-4.x-blue)
+![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
+```
+
