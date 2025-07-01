@@ -21,7 +21,6 @@ echo "✅ Docker e Docker Compose encontrados."
 echo "📦 Criando docker-compose.yml..."
 
 cat > docker-compose.yml <<EOF
-version: '3.9'
 services:
   loadtest-api:
     image: luisffilho/load-tester-api:latest
