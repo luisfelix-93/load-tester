@@ -50,7 +50,7 @@ A ferramenta permite enviar um número configurável de requisições HTTP para 
 
 ---
 
-## 🚀 🐳 Como Rodar o Projeto
+## 🚀 🐳 Rodando o Projeto com o Docker Compose
 
 ### Pré-requisitos
 
@@ -67,10 +67,52 @@ docker compose up -d
 Ou, se preferir, execute o script automatizado diretamente do GitHub:
 
 ```bash
-curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/v2/loadtester-install.sh | bash
+curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
 ```
 
 Após a execução, acesse a aplicação em: [http://localhost:5173](http://localhost:5173)
+
+## ☸️ Rodando com Kubernetes
+
+Além do Docker Compose, você pode rodar a aplicação em um cluster Kubernetes usando os manifests prontos na pasta `k8s-manifests`.
+
+### Pré-requisitos
+
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configurado
+- Um cluster Kubernetes (local ou cloud)
+
+### Passos
+
+1. Acesse a pasta dos manifests:
+   ```bash
+   cd k8s-manifests
+   ```
+
+2. Aplique todos os manifests:
+   ```bash
+   kubectl apply -f .
+   ```
+
+   Isso irá criar os deployments e services para o backend (API) e frontend.
+
+3. Exponha o frontend para acesso externo (exemplo usando port-forward):
+   ```bash
+   kubectl port-forward svc/loadtest-app-svc 5173:5173
+   ```
+   Agora acesse a aplicação em [http://localhost:5173](http://localhost:5173).
+
+> **Obs:** Se quiser expor via LoadBalancer ou Ingress, ajuste o tipo do Service conforme sua infraestrutura.
+
+### Estrutura dos manifests
+
+- `api-deployment.yaml` — Deployment do backend (API)
+- `api-service.yaml` — Service do backend (API)
+- `frontend-deployment.yaml` — Deployment do frontend (App)
+- `frontend-service.yaml` — Service do frontend (App)
+
+---
+
+Pronto! Agora sua documentação cobre tanto Docker Compose quanto Kubernetes.
 
 ## 🖥️ Estrutura do Frontend
 
