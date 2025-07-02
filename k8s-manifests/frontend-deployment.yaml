@@ -1,0 +1,19 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: loadtest-app
+spec: 
+  replicas: 1
+  selector:
+    matchLabels:
+      app: loadtest-app
+  template:
+    metadata:
+      labels:
+        app: loadtest-app
+  spec:
+    containers:
+    - name: loadtest-app
+      image: luisffilho/load-tester-app:latest
+      ports:
+      - containerPort: 5173
