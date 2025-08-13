@@ -1,30 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: loadtest-api
+  name: loadtest-worker
 spec:
   selector:
     matchLabels:
-      app: loadtest-api
+      app: loadtest-worker
   template:
     metadata:
       labels:
-        app: loadtest-api
+        app: loadtest-worker
     spec:
       containers:
-      - name: loadtest-api
-        image: luisffilho/load-tester-api:latest
-        ports:
-        - containerPort: 4000
+      - name: loadtest-worker
+        image: luisffilho/load-tester-worker:latest
         env:
-        - name: API_PORT
-          value: "4000"
         - name: REDIS_PORT
           value: "6379"
         - name: REDIS_HOST
           value: "redis-svc"
-        - name: MONGODB_URI
-          value: "mongodb://mongo-svc:27017/load-tester-db"
         resources:
           requests:
             memory: "128Mi"

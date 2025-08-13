@@ -17,3 +17,6 @@ spec:
       image: luisffilho/load-tester-app:latest
       ports:
       - containerPort: 5173
+      env:
+      - name: VITE_API_URL
+        value: "http://loadtest-api-svc:4000"
