@@ -104,7 +104,7 @@ graph TD
 
 ---
 
-## 🚀 🐳 Running the Project with Docker Compose
+## 🚀 🐳 Como Rodar o Projeto
 
 ### Prerequisites
 
@@ -124,7 +124,7 @@ Or, if you prefer, run the automated script directly from GitHub:
 curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
 ```
 
-After execution, access the application at: [http://localhost:5173](http://localhost:5173)
+Após a execução, acesse a aplicação em: [http://localhost:5173](http://localhost:5173)
 
 ## ☸️ Running with Kubernetes
 
