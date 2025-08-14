@@ -19,7 +19,7 @@ spec:
         env:
         - name: MONGO_URI
           value: "mongodb://mongo-svc:27017/health-check-db"
-        - name: REDIS_HOST
+        - name: REDIS_ROST
           value: "redis-svc"
         - name: REDIS_PORT
           value: "6379"
