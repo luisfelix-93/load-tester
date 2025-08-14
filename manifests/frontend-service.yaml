@@ -3,7 +3,7 @@ kind: Service
 metadata:
   name: loadtest-app-svc
 spec:
-  type: LoadBalancer
+  type: NodePort
   selector:
     app: loadtest-app
   ports:

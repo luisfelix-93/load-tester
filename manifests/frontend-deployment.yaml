@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: loadtest-app
-spec: 
+spec:
   replicas: 1
   selector:
     matchLabels:
@@ -11,12 +11,19 @@ spec:
     metadata:
       labels:
         app: loadtest-app
-  spec:
-    containers:
-    - name: loadtest-app
-      image: luisffilho/load-tester-app:20250813
-      ports:
-      - containerPort: 5173
-      env:
-      - name: VITE_API_URL
-        value: "http://loadtest-api-svc:4000"
+    spec:
+      containers:
+      - name: loadtest-app
+        image: luisffilho/load-tester-app:latest 
+        ports:
+        - containerPort: 5173
+        env:
+        - name: VITE_API_URL
+          value: "http://loadtest-api-svc:4000"
+        resources:
+          requests:
+            cpu: "100m"    
+            memory: "128Mi"  
+          limits:
+            cpu: "250m"    
+            memory: "256Mi"  
