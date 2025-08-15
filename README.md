@@ -1,124 +1,70 @@
-# 💫 Load Tester & Health Checker - Load Testing and Monitoring Tool
+# 💫 Load Tester - Ferramenta de Teste de Carga
 
-This project is a comprehensive application for **load testing** and **health checking** of APIs and services. Developed with **React**, **TypeScript**, **TailwindCSS**, and **ShadCN UI** on the frontend, and APIs in **Node.js**/**TypeScript** on the backend.
+Este projeto é uma aplicação de teste de carga desenvolvida com **React**, **TypeScript**, **TailwindCSS** e **ShadCN UI** no frontend, e uma API em **Node.js**/**TypeScript** no backend.
 
-The load testing tool allows sending a configurable number of HTTP requests to a target URL and visualizing performance statistics and graphs. The health check functionality allows continuous monitoring of endpoint availability and performance.
-
----
-
-## 🚀 Project Architecture
-
-The project is modular and divided into several services that communicate to provide load testing and health check functionalities.
-
-### Load Test Architecture
-
-The load test architecture is designed to be scalable and efficient, using queues to process test requests.
-
-```mermaid
-graph TD
-    A[load-tester-app - Frontend] --> B(loadtest-api - Load Test API)
-    B --> C{Redis - Test Queue / Cache}
-    B --> D[MongoDB - Results Storage]
-    C --> E[loadtest-worker - Test Executor]
-    E --> F[Target URL]
-```
-
-**Flow:**
-1.  The user interacts with the `load-tester-app` (frontend) to configure and start a load test.
-2.  The `load-tester-app` sends the test request to the `loadtest-api`.
-3.  The `loadtest-api` enqueues the test tasks in **Redis** and stores the test metadata in **MongoDB**.
-4.  The `loadtest-worker` consumes tasks from **Redis**, executes HTTP requests to the target URL, and sends the results back to the `loadtest-api` (which persists them in MongoDB).
-
-### Health Check Architecture
-
-The health check architecture allows continuous monitoring of endpoints, with dedicated workers for executing checks.
-
-```mermaid
-graph TD
-    G[orchestrator-api - Health Check API] --> H{Redis - Check Queue / Cache}
-    G --> I[MongoDB - Configuration/Results Storage]
-    H --> J[worker-api - Health Check Executor]
-    J --> K[Target Endpoint]
-```
-
-**Flow:**
-1.  The `orchestrator-api` manages health check configurations and enqueues check tasks in **Redis**.
-2.  Configurations and results are persisted in **MongoDB**.
-3.  The `worker-api` consumes tasks from **Redis**, executes checks on the target endpoints, and reports the results back to the `orchestrator-api`.
+A ferramenta permite enviar um número configurável de requisições HTTP para uma URL alvo e visualizar estatísticas e gráficos de desempenho.
 
 ---
 
-## ✨ Features
+## ✨ Funcionalidades
 
-### Load Testing
-
--   Customizable configuration for:
-    -   Target URL
-    -   Number of requests
-    -   Concurrency level
-    -   Method (GET/POST) and JSON payload submission
--   Results display:
-    -   Number of successes and failures
-    -   Total response time (minimum, average, and maximum)
-    -   Time to first and last byte
--   Graphs:
-    -   Status code per request (pie chart)
-    -   Response time per request (line chart)
-    -   Response time histogram
-    -   Average time per status code (bar chart)
--   Reports:
-    -   Interactive visualization on report pages with vertical scrolling (snap)
-    -   Export results as JSON
-    -   Search reports by date range
--   Responsive and modern interface with **TailwindCSS** + **ShadCN UI**
-
-### Health Check
-
--   Continuous monitoring of HTTP/HTTPS endpoints.
--   Configurable check intervals.
--   Availability status logging.
--   Historical check visualization.
--   Notifications (future).
+- Configuração personalizada de:
+  - URL alvo
+  - Número de requisições
+  - Nível de concorrência
+  - Método (GET/POST) e envio de payload JSON
+- Exibição de resultados:
+  - Número de sucessos e falhas
+  - Tempo total de resposta (mínimo, médio e máximo)
+  - Tempo para o primeiro e último byte
+- Gráficos:
+  - Status code por requisição (pizza)
+  - Tempo de resposta por requisição (linha)
+  - Histograma dos tempos de resposta
+  - Tempo médio por status code (barras)
+- Relatórios:
+  - Visualização interativa em páginas de relatório com rolagem vertical (snap)
+  - Exportação dos resultados como JSON
+  - Busca de relatórios por intervalo de datas
+- Interface responsiva e moderna com **TailwindCSS** + **ShadCN UI**
 
 ---
 
-## 📦 Technologies Used
+## 📦 Tecnologias Utilizadas
 
--   **Frontend**
-    -   React + Vite
-    -   TypeScript
-    -   TailwindCSS
-    -   ShadCN UI
-    -   Axios (for HTTP calls)
-    -   React Router DOM (navigation)
-    -   Chart.js + react-chartjs-2 (charts)
-    -   FileSaver (JSON export)
+- **Frontend**
+  - React + Vite
+  - TypeScript
+  - TailwindCSS
+  - ShadCN UI
+  - Axios (para chamadas HTTP)
+  - React Router DOM (navegação)
+  - Chart.js + react-chartjs-2 (gráficos)
+  - FileSaver (exportação JSON)
 
--   **Backend (APIs and Workers)**
-    -   Node.js
-    -   TypeScript
-    -   Express
-    -   Custom load testing and health check engines
-    -   MongoDB (database)
-    -   Redis (message queue / cache)
+- **Backend**
+  - Node.js
+  - TypeScript
+  - Express
+  - Load testing engine próprio
 
 ---
 
-## 🚀 🐳 Como Rodar o Projeto
+## 🚀 🐳 Rodando o Projeto com o Docker Compose
 
-### Prerequisites
+### Pré-requisitos
 
--   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) (required)
+- [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/) (obrigatório)
 
 ---
 
-You can easily bring up the entire stack (frontend, APIs, workers, MongoDB, Redis) using Docker Compose:
+Você pode subir toda a stack (frontend + backend) facilmente usando Docker Compose:
 
 ```bash
 docker compose up -d
 ```
 
-Or, if you prefer, run the automated script directly from GitHub:
+Ou, se preferir, execute o script automatizado diretamente do GitHub:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
@@ -126,95 +72,149 @@ curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadte
 
 Após a execução, acesse a aplicação em: [http://localhost:5173](http://localhost:5173)
 
-## ☸️ Running with Kubernetes
+## ☸️ Rodando com Kubernetes
 
-In addition to Docker Compose, you can run the application in a Kubernetes cluster using the ready-made manifests in the `manifests` folder.
+Além do Docker Compose, você pode rodar a aplicação em um cluster Kubernetes usando os manifests prontos na pasta `k8s-manifests`.
 
-### Prerequisites
+### Pré-requisitos
 
--   [kubectl](https://kubernetes.io/docs/tasks/tools/) configured
--   A Kubernetes cluster (local or cloud)
+- [kubectl](https://kubernetes.io/docs/tasks/tools/) configurado
+- Um cluster Kubernetes (local ou cloud)
 
-### Steps
+### Passos
 
-1.  Access the manifests folder:
-    ```bash
-    cd manifests
-    ```
+1. Acesse a pasta dos manifests:
+   ```bash
+   cd k8s-manifests
+   ```
 
-2.  Apply all manifests:
-    ```bash
-    kubectl apply -f .
-    ```
+2. Aplique todos os manifests:
+   ```bash
+   kubectl apply -f .
+   ```
 
-    This will create the deployments and services for all components: `loadtest-api`, `loadtest-app`, `loadtest-worker`, `orchestrator-api`, `worker-api`, `mongo`, and `redis`.
+   Isso irá criar os deployments e services para o backend (API) e frontend.
 
-3.  Expose the frontend for external access (example using port-forward):
-    ```bash
-    kubectl port-forward svc/loadtest-app-svc 5173:5173
-    ```
-    Now access the application at [http://localhost:5173](http://localhost:5173).
+3. Exponha o frontend para acesso externo (exemplo usando port-forward):
+   ```bash
+   kubectl port-forward svc/loadtest-app-svc 5173:5173
+   ```
+   Agora acesse a aplicação em [http://localhost:5173](http://localhost:5173).
 
-> **Note:** If you want to expose via LoadBalancer or Ingress, adjust the Service type according to your infrastructure.
+> **Obs:** Se quiser expor via LoadBalancer ou Ingress, ajuste o tipo do Service conforme sua infraestrutura.
 
-### Manifests Structure
+### Estrutura dos manifests
 
--   `api-deployment.yaml` — Deployment for `loadtest-api`
--   `api-service.yaml` — Service for `loadtest-api`
--   `frontend-deployment.yaml` — Deployment for `loadtest-app`
--   `frontend-service.yaml` — Service for `loadtest-app`
--   `loadtest-worker-deployment.yaml` — Deployment for `loadtest-worker`
--   `loadtest-worker-hpa.yaml` — Horizontal Pod Autoscaler for `loadtest-worker`
--   `mongo-deployment.yaml` — Deployment for MongoDB
--   `mongo-service.yaml` — Service for MongoDB
--   `orchestrator-api-deployment.yaml` — Deployment for `orchestrator-api`
--   `orchestrator-api-service.yaml` — Service for `orchestrator-api`
--   `redis-deployment.yaml` — Deployment for Redis
--   `redis-service.yaml` — Service for Redis
--   `worker-api-deployment.yaml` — Deployment for `worker-api`
--   `worker-api-service.yaml` — Service for `worker-api`
+- `api-deployment.yaml` — Deployment do backend (API)
+- `api-service.yaml` — Service do backend (API)
+- `frontend-deployment.yaml` — Deployment do frontend (App)
+- `frontend-service.yaml` — Service do frontend (App)
 
 ---
 
-## 📈 Usage Flow
+Pronto! Agora sua documentação cobre tanto Docker Compose quanto Kubernetes.
 
-### Load Testing:
+## 🖥️ Estrutura do Frontend
 
-1.  Access the home page.
-2.  Enter the target URL, number of requests, concurrency, method (GET/POST), and payload (if POST).
-3.  Start the test.
-4.  View the results summary, including performance graphs.
-5.  Browse previous reports or search by date range.
-6.  Export results as JSON, if desired.
+```
+src/
+ ├── api/               # Serviços de chamada HTTP (ex: loadtester.ts)
+ ├── components/        # Componentes reutilizáveis (Cards, Charts, Layout, etc.)
+ │    ├── AverageTimeByStatusChart/
+ │    ├── Layout/
+ │    ├── NavBar/
+ │    └── ...
+ ├── lib/               # Funções utilitárias (ex: utils.ts)
+ ├── pages/             # Páginas principais do app
+ │    ├── DetalheResumo/
+ │    ├── Error/
+ │    ├── Home/
+ │    ├── Loading/
+ │    ├── Relatorios/
+ │    ├── Resumo/
+ │    └── Teste/
+ ├── App.tsx            # Configuração de rotas
+ └── main.tsx           # Ponto de entrada do app
+```
 
-### Health Check:
+---
+## Estrutura do Backend
 
-1.  Access the health check page;
-2.  Enter the URL of the endpoint you want to monitor;
-3.  View the summary of requests made, minute by minute.
+O projeto segue uma arquitetura modular, separando responsabilidades em camadas para facilitar manutenção, testes e extensibilidade. Abaixo está um resumo dos principais diretórios e arquivos:
+
+```
+src/
+├── controllers/
+│   └── runLoadTest.controller.ts      # Lida com as requisições HTTP e respostas
+├── routes/
+│   └── loadTest.route.ts              # Define as rotas da API
+├── services/
+│   └── LoadTestService.ts             # Regras de negócio e interface com o repositório
+├── usecases/
+│   └── runLoadTest.usecase.ts         # Caso de uso principal: executa o teste de carga
+├── infrastructure/
+│   ├── interfaces/
+│   │   └── ILoadTest.ts               # Interface do modelo de teste de carga
+│   └── repositories/
+│       └── LoadTestRepository.ts      # Implementação em memória do repositório de testes
+├── utils/
+│   ├── makeRequest.ts                 # Função utilitária para executar requisições HTTP/HTTPS
+│   └── calcStats.ts                   # Função utilitária para calcular estatísticas dos testes
+├── server.ts                          # Ponto de entrada da aplicação Express
+```
+
+### Camadas principais
+
+- **Controllers:** Recebem as requisições HTTP, validam parâmetros e retornam respostas apropriadas.
+- **Routes:** Mapeiam os endpoints da API para os métodos dos controllers.
+- **Services:** Contêm a lógica de negócio e interagem com os repositórios.
+- **UseCases:** Implementam fluxos de negócio específicos (ex: executar um teste de carga).
+- **Infrastructure:** Define interfaces e implementações de persistência (ex: repositório em memória).
+- **Utils:** Funções auxiliares para requisições HTTP e cálculo de métricas.
+
+### Fluxo de uma requisição
+
+1. **Rota** recebe a requisição e direciona para o controller.
+2. **Controller** valida os dados e chama o use case ou service apropriado.
+3. **UseCase** executa o fluxo de negócio (ex: realiza múltiplas requisições de carga).
+4. **Service** pode salvar ou buscar dados do **repositório**.
+5. **Repository** armazena os dados em memória (pode ser adaptado para banco de dados futuramente).
+6. **Utils** são usadas para tarefas como enviar requisições HTTP e calcular estatísticas.
 
 ---
 
-## 🛠️ Future Improvements
+Essa estrutura facilita a escalabilidade e a testabilidade do projeto, permitindo evoluir para bancos de dados reais ou adicionar novas funcionalidades com facilidade.
 
--   Export results to CSV
--   Authentication support (JWT, Basic Auth)
--   Advanced filters in reports
--   Notifications for health checks (email, Slack, etc.)
--   Health check monitoring dashboard
+## 📈 Fluxo de Uso
 
----
-
-## 📄 License
-
-This project is licensed under the MIT License.
-Feel free to use, modify, and contribute!
+1. Acesse a página inicial.
+2. Informe a URL alvo, o número de requisições, concorrência, método (GET/POST) e payload (se POST).
+3. Inicie o teste.
+4. Veja o resumo dos resultados, incluindo gráficos de desempenho.
+5. Navegue pelos relatórios anteriores ou busque por intervalo de datas.
+6. Exporte os resultados como JSON, se desejar.
 
 ---
 
-# ⚡ Developed by
+## 🛠️ Melhorias Futuras
 
-Luis Felipe Felix Filho
+- Exportação dos resultados em CSV
+- Suporte a autenticação (JWT, Basic Auth)
+- Implementação de filas de teste para múltiplos usuários
+- Filtros avançados nos relatórios
+
+---
+
+## 📄 Licença
+
+Este projeto está licenciado sob a licença MIT.  
+Sinta-se livre para usar, modificar e contribuir!
+
+---
+
+# ⚡ Desenvolvido por
+
+Luis Felipe Felix Filho  
 [LinkedIn](https://www.linkedin.com/in/luis-felix-filho/) • [GitHub](https://github.com/luisfelix-93)
 
 ---
@@ -227,3 +227,4 @@ Luis Felipe Felix Filho
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ```
+
