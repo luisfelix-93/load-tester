@@ -4,3 +4,6 @@
 [submodule "load-tester-app"]
 	path = load-tester-app
 	url = https://github.com/luisfelix-93/load-tester-app
+[submodule "load-tester-worker"]
+	path = load-tester-worker
+	url = https://github.com/luisfelix-93/load-tester-worker
