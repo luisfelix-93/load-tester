@@ -1,230 +1,134 @@
-# 💫 Load Tester - Ferramenta de Teste de Carga
+# 💫 Load Tester - A Distributed Load Testing Tool
 
-Este projeto é uma aplicação de teste de carga desenvolvida com **React**, **TypeScript**, **TailwindCSS** e **ShadCN UI** no frontend, e uma API em **Node.js**/**TypeScript** no backend.
+This project is a distributed load testing application built with a microservices architecture. The system is composed of a **React** frontend, a **Node.js/TypeScript** API, and a separate **Node.js/TypeScript** worker to run the load tests.
 
-A ferramenta permite enviar um número configurável de requisições HTTP para uma URL alvo e visualizar estatísticas e gráficos de desempenho.
-
----
-
-## ✨ Funcionalidades
-
-- Configuração personalizada de:
-  - URL alvo
-  - Número de requisições
-  - Nível de concorrência
-  - Método (GET/POST) e envio de payload JSON
-- Exibição de resultados:
-  - Número de sucessos e falhas
-  - Tempo total de resposta (mínimo, médio e máximo)
-  - Tempo para o primeiro e último byte
-- Gráficos:
-  - Status code por requisição (pizza)
-  - Tempo de resposta por requisição (linha)
-  - Histograma dos tempos de resposta
-  - Tempo médio por status code (barras)
-- Relatórios:
-  - Visualização interativa em páginas de relatório com rolagem vertical (snap)
-  - Exportação dos resultados como JSON
-  - Busca de relatórios por intervalo de datas
-- Interface responsiva e moderna com **TailwindCSS** + **ShadCN UI**
+The tool allows you to send a configurable number of HTTP requests to a target URL and view performance statistics and charts.
 
 ---
 
-## 📦 Tecnologias Utilizadas
+## ✨ Architecture
+### Load-Tester
+The Load Tester is designed as a distributed system to separate concerns and improve scalability. The main components are:
 
-- **Frontend**
-  - React + Vite
-  - TypeScript
-  - TailwindCSS
-  - ShadCN UI
-  - Axios (para chamadas HTTP)
-  - React Router DOM (navegação)
-  - Chart.js + react-chartjs-2 (gráficos)
-  - FileSaver (exportação JSON)
+*   **`load-tester-app` (Frontend):** A web interface built with React, Vite, TypeScript, and TailwindCSS for users to configure and visualize load tests.
+*   **`load-tester-api` (API):** A Node.js/TypeScript backend that handles user requests, manages test configurations, and communicates with the worker.
+*   **`load-tester-worker` (Worker):** A dedicated Node.js/TypeScript service that executes the load tests. This separation prevents the API from being blocked by long-running test jobs.
 
-- **Backend**
-  - Node.js
-  - TypeScript
-  - Express
-  - Load testing engine próprio
+These core components are managed as Git submodules in this repository. For more detailed information about each component, please refer to the `README.md` inside its respective directory.
+
+---
+### Health-Check Monitor
+
+In addition to the load testing capabilities, this project includes a Health Check Monitoring system. This feature allows you to monitor the health and uptime of any number of user-defined HTTP endpoints.
+
+The Health Check system is also designed with a microservices architecture, consisting of two main components that are pulled as Docker images:
+
+*   **`orchestrator-api` (`luisffilho/health-check-api`):** This service provides the API for managing the endpoints to be monitored. The frontend communicates with this service to add, remove, and view monitored URLs and their health status logs.
+*   **`worker-api` (`luisffilho/health-check-worker`):** This is a dedicated worker service that periodically performs the health checks on the user-defined URLs. Separating this functionality ensures that the main application is not impacted by the monitoring tasks.
+
+This monitoring feature is accessible through the same frontend application, providing a unified interface for both load testing and health checking. 
+## 📦 Technologies Used
+
+-   **Frontend (`load-tester-app`)**
+    -   React + Vite
+    -   TypeScript
+    -   TailwindCSS
+    -   ShadCN UI
+    -   Chart.js for charts
+
+-   **Backend (`load-tester-api` & `load-tester-worker`)**
+    -   Node.js
+    -   TypeScript
+    -   Express (for the API)
+
+-   **DevOps**
+    -   Docker & Docker Compose
+    -   Kubernetes (k8s)
 
 ---
 
-## 🚀 🐳 Rodando o Projeto com o Docker Compose
+## 🚀 🐳 Running the Project with Docker Compose
 
-### Pré-requisitos
+### Prerequisites
 
-- [Docker](https://www.docker.com/) e [Docker Compose](https://docs.docker.com/compose/) (obrigatório)
+-   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed.
 
 ---
 
-Você pode subir toda a stack (frontend + backend) facilmente usando Docker Compose:
+You can bring up the entire stack (frontend + backend + worker) using Docker Compose:
 
 ```bash
-docker compose up -d
+# First, make sure the Git submodules are initialized and updated
+git submodule init
+git submodule update --remote
+
+# Then, run docker-compose
+docker-compose up -d
 ```
 
-Ou, se preferir, execute o script automatizado diretamente do GitHub:
+Alternatively, you can run the automated script directly from GitHub:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
 ```
 
-Após a execução, acesse a aplicação em: [http://localhost:5173](http://localhost:5173)
+After execution, access the application at: [http://localhost:5173](http://localhost:5173)
 
-## ☸️ Rodando com Kubernetes
+## ☸️ Running with Kubernetes
 
-Além do Docker Compose, você pode rodar a aplicação em um cluster Kubernetes usando os manifests prontos na pasta `k8s-manifests`.
+You can also run the application on a Kubernetes cluster using the manifests provided in the `k8s-manifests` folder.
 
-### Pré-requisitos
+### Prerequisites
 
-- [kubectl](https://kubernetes.io/docs/tasks/tools/) configurado
-- Um cluster Kubernetes (local ou cloud)
+-   [kubectl](https://kubernetes.io/docs/tasks/tools/) configured.
+-   A Kubernetes cluster (local or cloud).
 
-### Passos
+### Steps
 
-1. Acesse a pasta dos manifests:
-   ```bash
-   cd k8s-manifests
-   ```
+1.  Navigate to the manifests directory:
+    ```bash
+    cd k8s-manifests
+    ```
 
-2. Aplique todos os manifests:
-   ```bash
-   kubectl apply -f .
-   ```
+2.  Apply all the manifests:
+    ```bash
+    kubectl apply -f .
+    ```
+    This will create the deployments and services for the backend (API) and frontend.
 
-   Isso irá criar os deployments e services para o backend (API) e frontend.
+3.  Expose the frontend for external access (example using port-forward):
+    ```bash
+    kubectl port-forward svc/loadtest-app-svc 5173:5173
+    ```
+    Now access the application at [http://localhost:5173](http://localhost:5173).
 
-3. Exponha o frontend para acesso externo (exemplo usando port-forward):
-   ```bash
-   kubectl port-forward svc/loadtest-app-svc 5173:5173
-   ```
-   Agora acesse a aplicação em [http://localhost:5173](http://localhost:5173).
+> **Note:** If you want to expose the service via a LoadBalancer or Ingress, adjust the Service type according to your infrastructure.
 
-> **Obs:** Se quiser expor via LoadBalancer ou Ingress, ajuste o tipo do Service conforme sua infraestrutura.
+### Manifests Structure
 
-### Estrutura dos manifests
-
-- `api-deployment.yaml` — Deployment do backend (API)
-- `api-service.yaml` — Service do backend (API)
-- `frontend-deployment.yaml` — Deployment do frontend (App)
-- `frontend-service.yaml` — Service do frontend (App)
-
----
-
-Pronto! Agora sua documentação cobre tanto Docker Compose quanto Kubernetes.
-
-## 🖥️ Estrutura do Frontend
-
-```
-src/
- ├── api/               # Serviços de chamada HTTP (ex: loadtester.ts)
- ├── components/        # Componentes reutilizáveis (Cards, Charts, Layout, etc.)
- │    ├── AverageTimeByStatusChart/
- │    ├── Layout/
- │    ├── NavBar/
- │    └── ...
- ├── lib/               # Funções utilitárias (ex: utils.ts)
- ├── pages/             # Páginas principais do app
- │    ├── DetalheResumo/
- │    ├── Error/
- │    ├── Home/
- │    ├── Loading/
- │    ├── Relatorios/
- │    ├── Resumo/
- │    └── Teste/
- ├── App.tsx            # Configuração de rotas
- └── main.tsx           # Ponto de entrada do app
-```
-
----
-## Estrutura do Backend
-
-O projeto segue uma arquitetura modular, separando responsabilidades em camadas para facilitar manutenção, testes e extensibilidade. Abaixo está um resumo dos principais diretórios e arquivos:
-
-```
-src/
-├── controllers/
-│   └── runLoadTest.controller.ts      # Lida com as requisições HTTP e respostas
-├── routes/
-│   └── loadTest.route.ts              # Define as rotas da API
-├── services/
-│   └── LoadTestService.ts             # Regras de negócio e interface com o repositório
-├── usecases/
-│   └── runLoadTest.usecase.ts         # Caso de uso principal: executa o teste de carga
-├── infrastructure/
-│   ├── interfaces/
-│   │   └── ILoadTest.ts               # Interface do modelo de teste de carga
-│   └── repositories/
-│       └── LoadTestRepository.ts      # Implementação em memória do repositório de testes
-├── utils/
-│   ├── makeRequest.ts                 # Função utilitária para executar requisições HTTP/HTTPS
-│   └── calcStats.ts                   # Função utilitária para calcular estatísticas dos testes
-├── server.ts                          # Ponto de entrada da aplicação Express
-```
-
-### Camadas principais
-
-- **Controllers:** Recebem as requisições HTTP, validam parâmetros e retornam respostas apropriadas.
-- **Routes:** Mapeiam os endpoints da API para os métodos dos controllers.
-- **Services:** Contêm a lógica de negócio e interagem com os repositórios.
-- **UseCases:** Implementam fluxos de negócio específicos (ex: executar um teste de carga).
-- **Infrastructure:** Define interfaces e implementações de persistência (ex: repositório em memória).
-- **Utils:** Funções auxiliares para requisições HTTP e cálculo de métricas.
-
-### Fluxo de uma requisição
-
-1. **Rota** recebe a requisição e direciona para o controller.
-2. **Controller** valida os dados e chama o use case ou service apropriado.
-3. **UseCase** executa o fluxo de negócio (ex: realiza múltiplas requisições de carga).
-4. **Service** pode salvar ou buscar dados do **repositório**.
-5. **Repository** armazena os dados em memória (pode ser adaptado para banco de dados futuramente).
-6. **Utils** são usadas para tarefas como enviar requisições HTTP e calcular estatísticas.
+-   `api-deployment.yaml` — Deployment for the backend (API)
+-   `api-service.yaml` — Service for the backend (API)
+-   `frontend-deployment.yaml` — Deployment for the frontend (App)
+-   `frontend-service.yaml` — Service for the frontend (App)
 
 ---
 
-Essa estrutura facilita a escalabilidade e a testabilidade do projeto, permitindo evoluir para bancos de dados reais ou adicionar novas funcionalidades com facilidade.
+## 🛠️ Future Improvements
 
-## 📈 Fluxo de Uso
-
-1. Acesse a página inicial.
-2. Informe a URL alvo, o número de requisições, concorrência, método (GET/POST) e payload (se POST).
-3. Inicie o teste.
-4. Veja o resumo dos resultados, incluindo gráficos de desempenho.
-5. Navegue pelos relatórios anteriores ou busque por intervalo de datas.
-6. Exporte os resultados como JSON, se desejar.
+-   Export results in CSV format
+-   Support for authentication (JWT, Basic Auth)
+-   Advanced filters in reports
 
 ---
 
-## 🛠️ Melhorias Futuras
+## 📄 License
 
-- Exportação dos resultados em CSV
-- Suporte a autenticação (JWT, Basic Auth)
-- Implementação de filas de teste para múltiplos usuários
-- Filtros avançados nos relatórios
+This project is licensed under the MIT License.
+Feel free to use, modify, and contribute!
 
 ---
 
-## 📄 Licença
+# ⚡ Developed by
 
-Este projeto está licenciado sob a licença MIT.  
-Sinta-se livre para usar, modificar e contribuir!
-
----
-
-# ⚡ Desenvolvido por
-
-Luis Felipe Felix Filho  
+Luis Felipe Felix Filho
 [LinkedIn](https://www.linkedin.com/in/luis-felix-filho/) • [GitHub](https://github.com/luisfelix-93)
-
----
-
-## Badges
-
-```markdown
-![React](https://img.shields.io/badge/React-19.x-blue)
-![Node.js](https://img.shields.io/badge/Node.js-18.x-green)
-![TypeScript](https://img.shields.io/badge/TypeScript-5.x-blue)
-![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
-```
-
