@@ -16,7 +16,7 @@ services:
       - loadtest-net
 
   loadtest-api:
-    image: luisffilho/load-tester-api:latest
+    image: luisffilho/load-tester-api:20250818
     container_name: loadtest-api
     environment:
       - API_PORT=4000
@@ -31,7 +31,7 @@ services:
       - mongo
       - redis
   loadtest-worker:
-    image: luisffilho/load-tester-worker:latest
+    image: luisffilho/load-tester-worker:20250818
     container_name: loadtest-worker
     environment:
       - REDIS_PORT=6379
@@ -73,8 +73,6 @@ services:
       - REDIS_HOST=redis
     ports:
       - '3001:3001'
-
-
     networks:
       - loadtest-net
     depends_on:
