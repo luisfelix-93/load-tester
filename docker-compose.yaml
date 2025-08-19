@@ -51,7 +51,7 @@ services:
     depends_on:
       - loadtest-api
   orchestrator-api:
-    image: luisffilho/health-check-api:latest
+    image: luisffilho/health-check-api:20250819
     container_name: orchestator-api
     ports:
       - "5000:5000"
