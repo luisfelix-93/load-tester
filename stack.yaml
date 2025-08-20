@@ -6,6 +6,14 @@ services:
       - "27017:27017"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '2'
+          memory: 2G
   
   redis:
     image: redis:latest
@@ -13,6 +21,14 @@ services:
       - "6379:6379"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   loadtest-api:
     image: luisffilho/load-tester-api:latest
@@ -25,6 +41,14 @@ services:
       - "4000:4000"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   loadtest-worker:
     image: luisffilho/load-tester-worker:latest
@@ -33,6 +57,14 @@ services:
       - REDIS_HOST=redis
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   loadtest-app:
     image: luisffilho/load-tester-app:latest
@@ -40,18 +72,34 @@ services:
       - "5173:5173"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   orchestrator-api:
-    image: luisffilho/health-check-api:latest
+    image: luisffilho/health-check-api:20250819
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
       - REDIS_ROST=redis
       - REDIS_PORT=6379
-      - CRON_SCHEDULE='*/1 * * * *'
+      - CRON_SCHEDULE=*/1 * * * *
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   worker-api:
     image: luisffilho/health-check-worker:latest
@@ -62,6 +110,14 @@ services:
       - '3001:3001'
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
 networks:
   loadtest-net:
