@@ -42,37 +42,42 @@ This monitoring feature is accessible through the same frontend application, pro
     -   Express (for the API)
 
 -   **DevOps**
-    -   Docker & Docker Compose
+    -   Docker & Docker Swarm
     -   Kubernetes (k8s)
 
 ---
 
-## 🚀 🐳 Running the Project with Docker Compose
+## 🚀 🐳 Running the Project with Docker Swarm
 
 ### Prerequisites
 
--   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed.
+-   [Docker](https://www.docker.com/) must be installed. The script will automatically initialize Docker Swarm if it's not already configured.
 
 ---
 
-You can bring up the entire stack (frontend + backend + worker) using Docker Compose:
+You can bring up the entire stack (frontend + backend + worker) using our automated installation script. This script will create a `stack.yaml` file with all the service configurations and deploy it to Docker Swarm.
 
-```bash
-# First, make sure the Git submodules are initialized and updated
-git submodule init
-git submodule update --remote
-
-# Then, run docker-compose
-docker-compose up -d
-```
-
-Alternatively, you can run the automated script directly from GitHub:
+Run the automated script directly from GitHub:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
 ```
 
-After execution, access the application at: [http://localhost:5173](http://localhost:5173)
+After execution, the script will deploy the entire application stack using Docker Swarm. You can check the status of the services with the command:
+
+```bash
+docker stack ps loadtester
+```
+
+Access the application at: [http://localhost:5173](http://localhost:5173)
+
+### Customization
+
+The installation script creates a `stack.yaml` file. You can modify this file to customize the deployment, such as changing image versions or resource limits, and then redeploy the stack with:
+
+```bash
+docker stack deploy -c stack.yaml loadtester
+```
 
 ## ☸️ Running with Kubernetes
 
