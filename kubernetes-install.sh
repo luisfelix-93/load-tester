@@ -4,7 +4,7 @@
 # baixando os manifestos diretamente do repositório GitHub.
 
 # URL base para os arquivos raw do repositório GitHub.
-GITHUB_RAW_URL="https://raw.githubusercontent.com/luisfelix-93/load-tester/main"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/luisfelix-93/load-tester/v2"
 
 # Verifica se o kubectl está instalado
 if ! command -v kubectl &> /dev/null
