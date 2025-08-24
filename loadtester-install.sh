@@ -107,7 +107,7 @@ services:
           memory: 256M
 
   orchestrator-api:
-    image: luisffilho/health-check-api:20250819
+    image: luisffilho/health-check-api:20250824
     ports:
       - "5000:5000"
     environment:
@@ -127,7 +127,7 @@ services:
           memory: 256M
 
   worker-api:
-    image: luisffilho/health-check-worker:latest
+    image: luisffilho/health-check-worker:20250822
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis

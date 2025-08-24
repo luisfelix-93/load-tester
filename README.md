@@ -81,40 +81,29 @@ docker stack deploy -c stack.yaml loadtester
 
 ## ☸️ Running with Kubernetes
 
-You can also run the application on a Kubernetes cluster using the manifests provided in the `k8s-manifests` folder.
+To install the application on a Kubernetes cluster, you need `kubectl` installed and configured to access your cluster.
 
-### Prerequisites
+Run the following command to download and execute the installation script directly from the GitHub repository:
 
--   [kubectl](https://kubernetes.io/docs/tasks/tools/) configured.
--   A Kubernetes cluster (local or cloud).
+```sh
+curl -sL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/kubernetes-install.sh | bash
+```
 
-### Steps
+The script will apply all the necessary manifests from the `manifests` directory to deploy the entire application stack, including deployments, services, and a Horizontal Pod Autoscaler for the workers.
 
-1.  Navigate to the manifests directory:
-    ```bash
-    cd k8s-manifests
-    ```
+After the script finishes, you can check the status of the deployment with the following commands:
 
-2.  Apply all the manifests:
-    ```bash
-    kubectl apply -f .
-    ```
-    This will create the deployments and services for the backend (API) and frontend.
+-   `kubectl get pods` - to see the status of all pods.
+-   `kubectl get services` - to see the exposed services and how to access them.
 
-3.  Expose the frontend for external access (example using port-forward):
-    ```bash
-    kubectl port-forward svc/loadtest-app-svc 5173:5173
-    ```
-    Now access the application at [http://localhost:5173](http://localhost:5173).
+To access the frontend, you will likely need to set up port forwarding. Find the frontend service name by running `kubectl get services` (it should be something like `frontend-service`) and then run:
 
-> **Note:** If you want to expose the service via a LoadBalancer or Ingress, adjust the Service type according to your infrastructure.
+```sh
+# Replace 'frontend-service' with the actual service name if different
+kubectl port-forward svc/frontend-service 5173:80
+```
 
-### Manifests Structure
-
--   `api-deployment.yaml` — Deployment for the backend (API)
--   `api-service.yaml` — Service for the backend (API)
--   `frontend-deployment.yaml` — Deployment for the frontend (App)
--   `frontend-service.yaml` — Service for the frontend (App)
+Now you can access the application at [http://localhost:5173](http://localhost:5173).
 
 ---
 

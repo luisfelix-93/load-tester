@@ -12,8 +12,8 @@ services:
           cpus: '0.25'
           memory: 256M
         limits:
-          cpus: '2'
-          memory: 2G
+          cpus: '1'
+          memory: 512M
   
   redis:
     image: redis:latest
@@ -31,7 +31,7 @@ services:
           memory: 256M
 
   loadtest-api:
-    image: luisffilho/load-tester-api:latest
+    image: luisffilho/load-tester-api:20250818
     environment:
       - API_PORT=4000
       - REDIS_PORT=6379
@@ -51,7 +51,7 @@ services:
           memory: 256M
 
   loadtest-worker:
-    image: luisffilho/load-tester-worker:latest
+    image: luisffilho/load-tester-worker:20250818
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
@@ -67,7 +67,7 @@ services:
           memory: 256M
 
   loadtest-app:
-    image: luisffilho/load-tester-app:latest
+    image: luisffilho/load-tester-app:20250813
     ports:
       - "5173:5173"
     networks:
@@ -82,14 +82,14 @@ services:
           memory: 256M
 
   orchestrator-api:
-    image: luisffilho/health-check-api:20250819
+    image: luisffilho/health-check-api:20250822
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
       - REDIS_ROST=redis
       - REDIS_PORT=6379
-      - CRON_SCHEDULE=*/1 * * * *
+      - CRON_SCHEDULE=*/5 * * * *
     networks:
       - loadtest-net
     deploy:
@@ -102,7 +102,7 @@ services:
           memory: 256M
 
   worker-api:
-    image: luisffilho/health-check-worker:latest
+    image: luisffilho/health-check-worker:20250822
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis

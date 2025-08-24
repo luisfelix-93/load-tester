@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: orchestrator-api
-        image: luisffilho/health-check-api:latest
+        image: luisffilho/health-check-api:20250824
         ports:
         - containerPort: 5000
         env:
