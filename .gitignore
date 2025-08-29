@@ -2,3 +2,6 @@
 /dist
 /.vscode
 /build
+/load-tester-cli
+/load-tester-installer
+

@@ -52,8 +52,8 @@ services:
           cpus: '0.1'
           memory: 128M
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '1'
+          memory: 512M
 
   loadtest-api:
     image: luisffilho/load-tester-api:20250818
@@ -92,7 +92,7 @@ services:
           memory: 256M
 
   loadtest-app:
-    image: luisffilho/load-tester-app:20250813
+    image: luisffilho/load-tester-app:20250825
     ports:
       - "5173:5173"
     networks:
@@ -107,14 +107,14 @@ services:
           memory: 256M
 
   orchestrator-api:
-    image: luisffilho/health-check-api:20250824
+    image: luisffilho/health-check-api:20250829
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
-      - REDIS_ROST=redis
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - CRON_SCHEDULE=*/5 * * * *
+      - CRON_SCHEDULE=60000
     networks:
       - loadtest-net
     deploy:
@@ -123,11 +123,11 @@ services:
           cpus: '0.1'
           memory: 128M
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '1'
+          memory: 512M
 
   worker-api:
-    image: luisffilho/health-check-worker:20250822
+    image: luisffilho/health-check-worker:20250829
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
@@ -141,12 +141,13 @@ services:
           cpus: '0.1'
           memory: 128M
         limits:
-          cpus: '0.5'
-          memory: 256M
+          cpus: '1'
+          memory: 512M
 
 networks:
   loadtest-net:
     driver: overlay
+
 EOF
 
 echo "🚀 Implantando a stack no Docker Swarm..."

@@ -1,21 +1,36 @@
 #!/bin/bash
 
-# Script para instalar a aplicação load-tester em um cluster Kubernetes
-# baixando os manifestos diretamente do repositório GitHub.
+# Script to install the load-tester application in a Kubernetes cluster
+# by downloading the manifests directly from the GitHub repository.
 
-# URL base para os arquivos raw do repositório GitHub.
+# Base URL for raw files from the GitHub repository.
 GITHUB_RAW_URL="https://raw.githubusercontent.com/luisfelix-93/load-tester/v2"
 
-# Verifica se o kubectl está instalado
+# Check if kubectl is installed
 if ! command -v kubectl &> /dev/null
 then
-    echo "kubectl não foi encontrado. Por favor, instale-o para continuar."
+    echo "kubectl not found. Please install it to continue."
     exit
 fi
 
-echo "Aplicando os manifestos Kubernetes a partir de ${GITHUB_RAW_URL}..."
+# Check if kind is installed
+if ! command -v kind &> /dev/null
+then
+    echo "kind not found. Please install it to continue."
+    exit
+fi
 
-# Lista de manifestos a serem aplicados na ordem correta.
+# Create a kind cluster
+if ! kind get clusters | grep -q "load-tester"; then
+    echo "Creating kind cluster..."
+    kind create cluster --name load-tester
+else
+    echo "Kind cluster 'load-tester' already exists."
+fi
+
+echo "Applying Kubernetes manifests from ${GITHUB_RAW_URL}..."
+
+# List of manifests to be applied in the correct order.
 MANIFESTS=(
     "manifests/mongo-service.yaml"
     "manifests/redis-service.yaml"
@@ -33,20 +48,41 @@ MANIFESTS=(
     "manifests/loadtest-worker-hpa.yaml"
 )
 
-# Itera sobre a lista e aplica cada manifesto.
+# Iterate over the list and apply each manifest.
 for manifest in "${MANIFESTS[@]}"; do
     URL="${GITHUB_RAW_URL}/${manifest}"
-    echo "Aplicando ${URL}..."
+    echo "Applying ${URL}..."
     kubectl apply -f "${URL}"
-    # Verifica se o comando foi bem-sucedido
+    # Check if the command was successful
     if [ $? -ne 0 ]; then
-        echo "Erro ao aplicar o manifesto ${URL}. Abortando."
+        echo "Error applying manifest ${URL}. Aborting."
         exit 1
     fi
 done
 
 echo ""
-echo "Script de instalação finalizado."
-echo "Use 'kubectl get pods' para verificar o status dos pods."
-echo "Use 'kubectl get services' para ver os serviços expostos."
-echo "✅ Aplicação disponível em: http://localhost:5173"
+echo "Waiting for deployments to be ready..."
+
+kubectl rollout status deployment/loadtest-app
+kubectl rollout status deployment/loadtest-api
+kubectl rollout status deployment/orchestrator-api
+kubectl rollout status deployment/worker-api
+
+echo ""
+echo "Installation script finished."
+echo "Use 'kubectl get pods' to check the status of the pods."
+echo "Use 'kubectl get services' to see the exposed services."
+
+# Kill any existing port-forward processes
+echo "Killing existing port-forward processes..."
+pkill -f "kubectl port-forward" || true
+
+echo "Starting port-forwarding..."
+
+# Port-forward for services in the background
+kubectl port-forward service/loadtest-app-svc 5173:5173 &
+kubectl port-forward service/loadtest-api-svc 4000:4000 &
+kubectl port-forward service/orchestrator-api-svc 5000:5000 &
+kubectl port-forward service/worker-api-svc 3001:3001 &
+
+echo "✅ Application available at: http://localhost:5173"

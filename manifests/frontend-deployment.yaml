@@ -14,7 +14,7 @@ spec:
     spec:
       containers:
       - name: loadtest-app
-        image: luisffilho/load-tester-app:20250813 
+        image: luisffilho/load-tester-app:20250825 
         ports:
         - containerPort: 5173
         env:

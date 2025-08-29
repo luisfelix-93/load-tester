@@ -13,16 +13,18 @@ spec:
     spec:
       containers:
       - name: orchestrator-api
-        image: luisffilho/health-check-api:20250824
+        image: luisffilho/health-check-api:20250829
         ports:
         - containerPort: 5000
         env:
         - name: MONGO_URI
           value: "mongodb://mongo-svc:27017/health-check-db"
-        - name: REDIS_ROST
+        - name: REDIS_HOST
           value: "redis-svc"
         - name: REDIS_PORT
           value: "6379"
+        - name: CRON_SCHEDULE
+          value: "60000"
         resources:
           requests:
             memory: "128Mi"
