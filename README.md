@@ -79,31 +79,45 @@ The installation script creates a `stack.yaml` file. You can modify this file to
 docker stack deploy -c stack.yaml loadtester
 ```
 
-## ☸️ Running with Kubernetes
+## ☸️ Running with Kubernetes (using Kind)
 
-To install the application on a Kubernetes cluster, you need `kubectl` installed and configured to access your cluster.
+You can easily run the entire application stack on a local Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/).
 
-Run the following command to download and execute the installation script directly from the GitHub repository:
+### Prerequisites
+
+-   [kubectl](https://kubernetes.io/docs/tasks/tools/) installed.
+-   [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) installed.
+
+### Installation
+
+Run the following command to download and execute the installation script. It will set up a complete environment automatically:
 
 ```sh
 curl -sL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/kubernetes-install.sh | bash
 ```
 
-The script will apply all the necessary manifests from the `manifests` directory to deploy the entire application stack, including deployments, services, and a Horizontal Pod Autoscaler for the workers.
+### What the script does:
 
-After the script finishes, you can check the status of the deployment with the following commands:
+1.  **Checks for `kubectl` and `kind`**: Ensures the required tools are available.
+2.  **Creates a Kind Cluster**: If a cluster named `load-tester` doesn't already exist, it creates one.
+3.  **Deploys the Application**: Applies all the necessary Kubernetes manifests from the repository to deploy the services, deployments, and HPA.
+4.  **Waits for Readiness**: The script waits until the main application deployments are ready and running.
+5.  **Enables Access**: It automatically sets up `kubectl port-forward` for all necessary services in the background, so you can access them from your local machine.
 
--   `kubectl get pods` - to see the status of all pods.
--   `kubectl get services` - to see the exposed services and how to access them.
+After the script finishes, the application will be running and accessible.
 
-To access the frontend, you will likely need to set up port forwarding. Find the frontend service name by running `kubectl get services` (it should be something like `frontend-service`) and then run:
+### Accessing the Application
+
+-   **Frontend**: [http://localhost:5173](http://localhost:5173)
+-   **Load Tester API**: [http://localhost:4000](http://localhost:4000)
+-   **Health Check API**: [http://localhost:5000](http://localhost:5000)
+
+You can check the status of the pods and services with standard `kubectl` commands:
 
 ```sh
-# Replace 'frontend-service' with the actual service name if different
-kubectl port-forward svc/frontend-service 5173:80
+kubectl get pods
+kubectl get services
 ```
-
-Now you can access the application at [http://localhost:5173](http://localhost:5173).
 
 ---
 

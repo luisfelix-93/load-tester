@@ -4,7 +4,7 @@
 # by downloading the manifests directly from the GitHub repository.
 
 # Base URL for raw files from the GitHub repository.
-GITHUB_RAW_URL="https://raw.githubusercontent.com/luisfelix-93/load-tester/v2"
+GITHUB_RAW_URL="https://raw.githubusercontent.com/luisfelix-93/load-tester/prod"
 
 # Check if kubectl is installed
 if ! command -v kubectl &> /dev/null
@@ -60,13 +60,13 @@ for manifest in "${MANIFESTS[@]}"; do
     fi
 done
 
+kubectl apply -f https://raw.githubusercontent.com/kubernetes/dashboard/v2.7.0/aio/deploy/recommended.yaml
+kubectl proxy
 echo ""
 echo "Waiting for deployments to be ready..."
 
 kubectl rollout status deployment/loadtest-app
-kubectl rollout status deployment/loadtest-api
-kubectl rollout status deployment/orchestrator-api
-kubectl rollout status deployment/worker-api
+
 
 echo ""
 echo "Installation script finished."
@@ -81,8 +81,5 @@ echo "Starting port-forwarding..."
 
 # Port-forward for services in the background
 kubectl port-forward service/loadtest-app-svc 5173:5173 &
-kubectl port-forward service/loadtest-api-svc 4000:4000 &
-kubectl port-forward service/orchestrator-api-svc 5000:5000 &
-kubectl port-forward service/worker-api-svc 3001:3001 &
 
 echo "✅ Application available at: http://localhost:5173"
