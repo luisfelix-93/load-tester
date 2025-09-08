@@ -23,8 +23,7 @@ services:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
       - MONGODB_URI=mongodb://mongo:27017/load-tester-db
-    ports:
-      - "4000:4000"
+    # A porta não é mais exposta publicamente
     networks:
       - loadtest-net
     depends_on:
@@ -44,8 +43,7 @@ services:
   loadtest-app:
     image: luisffilho/load-tester-app:latest
     container_name: loadtest-app
-    ports:
-      - "5173:5173"
+    # A porta não é mais exposta publicamente
     networks:
       - loadtest-net
     depends_on:
@@ -53,13 +51,12 @@ services:
   orchestrator-api:
     image: luisffilho/health-check-api:20250819
     container_name: orchestator-api
-    ports:
-      - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
       - REDIS_ROST=redis
       - REDIS_PORT=6379
       - CRON_SCHEDULE=*/1 * * * *
+    # A porta não é mais exposta publicamente
     networks:
       - loadtest-net
     depends_on:
@@ -71,8 +68,7 @@ services:
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
-    ports:
-      - '3001:3001'
+    # A porta não é mais exposta publicamente
     networks:
       - loadtest-net
     depends_on:

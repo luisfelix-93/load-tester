@@ -4,4 +4,6 @@
 /build
 /load-tester-cli
 /load-tester-installer
-
+CHANGELOG.md
+log.txt
+dockerfile

@@ -14,12 +14,9 @@ spec:
     spec:
       containers:
       - name: loadtest-app
-        image: luisffilho/load-tester-app:20250825 
+        image: luisffilho/load-tester-app:20250905k8s
         ports:
         - containerPort: 5173
-        env:
-        - name: VITE_API_URL
-          value: "http://loadtest-api-svc:4000"
         resources:
           requests:
             cpu: "100m"    
