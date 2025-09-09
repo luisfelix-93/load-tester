@@ -10,7 +10,7 @@ The tool allows you to send a configurable number of HTTP requests to a target U
 ### Load-Tester
 The Load Tester is designed as a distributed system to separate concerns and improve scalability. The main components are:
 
-*   **`load-tester-app` (Frontend):** A web interface built with React, Vite, TypeScript, and TailwindCSS for users to configure and visualize load tests.
+*   **`load-tester-app` (Frontend & API Gateway):** A web interface built with React, Vite, and TypeScript. In addition to serving the user interface, this component includes an NGINX configuration that acts as an **API Gateway**. It reverse-proxies requests from the frontend to the appropriate backend services (`load-tester-api` and `orchestrator-api`), simplifying network configuration and centralizing access points.
 *   **`load-tester-api` (API):** A Node.js/TypeScript backend that handles user requests, manages test configurations, and communicates with the worker.
 *   **`load-tester-worker` (Worker):** A dedicated Node.js/TypeScript service that executes the load tests. This separation prevents the API from being blocked by long-running test jobs.
 
@@ -42,74 +42,82 @@ This monitoring feature is accessible through the same frontend application, pro
     -   Express (for the API)
 
 -   **DevOps**
-    -   Docker & Docker Compose
+    -   Docker & Docker Swarm
     -   Kubernetes (k8s)
 
 ---
 
-## 🚀 🐳 Running the Project with Docker Compose
+## 🚀 🐳 Running the Project with Docker Swarm
 
 ### Prerequisites
 
--   [Docker](https://www.docker.com/) and [Docker Compose](https://docs.docker.com/compose/) must be installed.
+-   [Docker](https://www.docker.com/) must be installed. The script will automatically initialize Docker Swarm if it's not already configured.
 
 ---
 
-You can bring up the entire stack (frontend + backend + worker) using Docker Compose:
+You can bring up the entire stack (frontend + backend + worker) using our automated installation script. This script will create a `stack.yaml` file with all the service configurations and deploy it to Docker Swarm.
 
-```bash
-# First, make sure the Git submodules are initialized and updated
-git submodule init
-git submodule update --remote
-
-# Then, run docker-compose
-docker-compose up -d
-```
-
-Alternatively, you can run the automated script directly from GitHub:
+Run the automated script directly from GitHub:
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/loadtester-install.sh | bash
 ```
 
-After execution, access the application at: [http://localhost:5173](http://localhost:5173)
+After execution, the script will deploy the entire application stack using Docker Swarm. You can check the status of the services with the command:
 
-## ☸️ Running with Kubernetes
+```bash
+docker stack ps loadtester
+```
 
-You can also run the application on a Kubernetes cluster using the manifests provided in the `k8s-manifests` folder.
+Access the application at: [http://localhost:5173](http://localhost:5173)
+
+### Customization
+
+The installation script creates a `stack.yaml` file. You can modify this file to customize the deployment, such as changing image versions or resource limits, and then redeploy the stack with:
+
+```bash
+docker stack deploy -c stack.yaml loadtester
+```
+
+## ☸️ Running with Kubernetes (using Kind)
+
+You can easily run the entire application stack on a local Kubernetes cluster using [Kind](https://kind.sigs.k8s.io/).
 
 ### Prerequisites
 
--   [kubectl](https://kubernetes.io/docs/tasks/tools/) configured.
--   A Kubernetes cluster (local or cloud).
+-   [kubectl](https://kubernetes.io/docs/tasks/tools/) installed.
+-   [Kind](https://kind.sigs.k8s.io/docs/user/quick-start/#installation) installed.
 
-### Steps
+### Installation
 
-1.  Navigate to the manifests directory:
-    ```bash
-    cd k8s-manifests
-    ```
+Run the following command to download and execute the installation script. It will set up a complete environment automatically:
 
-2.  Apply all the manifests:
-    ```bash
-    kubectl apply -f .
-    ```
-    This will create the deployments and services for the backend (API) and frontend.
+```sh
+curl -sL https://raw.githubusercontent.com/luisfelix-93/load-tester/prod/kubernetes-install.sh | bash
+```
 
-3.  Expose the frontend for external access (example using port-forward):
-    ```bash
-    kubectl port-forward svc/loadtest-app-svc 5173:5173
-    ```
-    Now access the application at [http://localhost:5173](http://localhost:5173).
+### What the script does:
 
-> **Note:** If you want to expose the service via a LoadBalancer or Ingress, adjust the Service type according to your infrastructure.
+1.  **Checks for `kubectl` and `kind`**: Ensures the required tools are available.
+2.  **Creates a Kind Cluster**: If a cluster named `load-tester` doesn't already exist, it creates one.
+3.  **Deploys the Application**: Applies all the necessary Kubernetes manifests from the repository to deploy the services, deployments, and HPA.
+4.  **Waits for Readiness**: The script waits until the main application deployments are ready and running.
+5.  **Enables Access**: It automatically sets up `kubectl port-forward` for all necessary services in the background, so you can access them from your local machine.
 
-### Manifests Structure
+After the script finishes, the application will be running and accessible.
 
--   `api-deployment.yaml` — Deployment for the backend (API)
--   `api-service.yaml` — Service for the backend (API)
--   `frontend-deployment.yaml` — Deployment for the frontend (App)
--   `frontend-service.yaml` — Service for the frontend (App)
+### Accessing the Application
+
+-   **Frontend**: [http://localhost:5173](http://localhost:5173)
+-   **Load Tester API**: [http://localhost:4000](http://localhost:4000)
+-   **Health Check API**: [http://localhost:5000](http://localhost:5000)
+
+You can check the status of the pods and services with standard `kubectl` commands:
+
+```sh
+kubectl get pods
+kubectl get services
+```
 
 ---
 

@@ -2,3 +2,9 @@
 /dist
 /.vscode
 /build
+/load-tester-cli
+/load-tester-installer
+CHANGELOG.md
+log.txt
+PR_Summary.md
+dockerfile

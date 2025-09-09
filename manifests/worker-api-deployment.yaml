@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: worker-api
-        image: luisffilho/health-check-worker:latest
+        image: luisffilho/health-check-worker:20250829
         ports:
         - containerPort: 3001
         env:

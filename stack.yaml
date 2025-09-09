@@ -6,6 +6,14 @@ services:
       - "27017:27017"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '1'
+          memory: 1G
   
   redis:
     image: redis:latest
@@ -13,9 +21,17 @@ services:
       - "6379:6379"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
 
   loadtest-api:
-    image: luisffilho/load-tester-api:latest
+    image: luisffilho/load-tester-api:20250818
     environment:
       - API_PORT=4000
       - REDIS_PORT=6379
@@ -25,36 +41,68 @@ services:
       - "4000:4000"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   loadtest-worker:
-    image: luisffilho/load-tester-worker:latest
+    image: luisffilho/load-tester-worker:20250818
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
 
   loadtest-app:
-    image: luisffilho/load-tester-app:latest
+    image: luisffilho/load-tester-app:20250825
     ports:
       - "5173:5173"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.25'
+          memory: 256M
 
   orchestrator-api:
-    image: luisffilho/health-check-api:latest
+    image: luisffilho/health-check-api:20250829
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
-      - REDIS_ROST=redis
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - CRON_SCHEDULE='*/1 * * * *'
+      - CRON_SCHEDULE=60000
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
 
   worker-api:
-    image: luisffilho/health-check-worker:latest
+    image: luisffilho/health-check-worker:20250829
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
@@ -62,6 +110,14 @@ services:
       - '3001:3001'
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
 
 networks:
   loadtest-net:

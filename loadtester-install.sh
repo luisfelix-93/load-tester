@@ -9,38 +9,54 @@ then
     exit 1
 fi
 
-echo "🔍 Verificando se Docker Compose está instalado..."
-if ! docker compose version &> /dev/null
+echo "✅ Docker encontrado."
+
+echo "🔍 Verificando status do Docker Swarm..."
+if ! docker info --format '{{.Swarm.LocalNodeState}}' | grep -q "active"
 then
-    echo "❌ Docker Compose não encontrado. Instale o Docker Compose v2 (docker compose)."
-    exit 1
+    echo "⚠️ Docker Swarm não está ativo. Inicializando Swarm..."
+    docker swarm init
 fi
 
-echo "✅ Docker e Docker Compose encontrados."
+echo "✅ Docker Swarm está ativo."
 
-echo "📦 Criando docker-compose.yml..."
+echo "📦 Criando stack.yaml..."
 
-cat > docker-compose.yml <<EOF
+cat > stack.yaml <<EOF
+version: '3.8'
 services:
   mongo:
     image: mongo:latest
-    container_name: mongo
     ports:
       - "27017:27017"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.25'
+          memory: 256M
+        limits:
+          cpus: '2'
+          memory: 2G
   
   redis:
     image: redis:latest
-    container_name: redis
     ports:
       - "6379:6379"
     networks:
       - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
 
   loadtest-api:
     image: luisffilho/load-tester-api:20250818
-    container_name: loadtest-api
     environment:
       - API_PORT=4000
       - REDIS_PORT=6379
@@ -50,64 +66,92 @@ services:
       - "4000:4000"
     networks:
       - loadtest-net
-    depends_on:
-      - mongo
-      - redis
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
   loadtest-worker:
     image: luisffilho/load-tester-worker:20250818
-    container_name: loadtest-worker
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
     networks:
       - loadtest-net
-    depends_on:
-      - redis
-      - loadtest-api
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.5'
+          memory: 256M
+
   loadtest-app:
-    image: luisffilho/load-tester-app:20250813
-    container_name: loadtest-app
+    image: luisffilho/load-tester-app:20250825
     ports:
       - "5173:5173"
     networks:
       - loadtest-net
-    depends_on:
-      - loadtest-api
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '0.25'
+          memory: 256M
+
   orchestrator-api:
-    image: luisffilho/health-check-api:latest
-    container_name: orchestator-api
+    image: luisffilho/health-check-api:20250829
     ports:
       - "5000:5000"
     environment:
       - MONGO_URI=mongodb://mongo:27017/health-check-db
-      - REDIS_ROST=redis
+      - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - CRON_SCHEDULE=*/1 * * * *
+      - CRON_SCHEDULE=60000
     networks:
       - loadtest-net
-    depends_on:
-      - mongo
-      - redis
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
+
   worker-api:
-    image: luisffilho/health-check-worker:latest
-    container_name: worker-api
+    image: luisffilho/health-check-worker:20250829
     environment:
       - REDIS_PORT=6379
       - REDIS_HOST=redis
     ports:
       - '3001:3001'
-
-
     networks:
       - loadtest-net
-    depends_on:
-      - redis
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: 128M
+        limits:
+          cpus: '1'
+          memory: 512M
+
 networks:
   loadtest-net:
-    driver: bridge
+    driver: overlay
+
 EOF
 
-echo "🚀 Subindo containers..."
-docker compose up -d
+echo "🚀 Implantando a stack no Docker Swarm..."
+docker stack deploy -c stack.yaml loadtester
 
+echo "✅ Aplicação implantada com sucesso. Verifique o status com 'docker stack ps loadtester'"
 echo "✅ Aplicação disponível em: http://localhost:5173"
