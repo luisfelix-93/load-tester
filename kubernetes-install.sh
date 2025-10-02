@@ -32,6 +32,7 @@ echo "Applying Kubernetes manifests from ${GITHUB_RAW_URL}..."
 
 # List of manifests to be applied in the correct order.
 MANIFESTS=(
+    "manifests/dashboard-adminuser.yaml"
     "manifests/mongo-service.yaml"
     "manifests/redis-service.yaml"
     "manifests/api-service.yaml"
@@ -46,6 +47,8 @@ MANIFESTS=(
     "manifests/loadtest-worker-deployment.yaml"
     "manifests/frontend-deployment.yaml"
     "manifests/loadtest-worker-hpa.yaml"
+    "manifests/dns-cert-api-deployment.yaml"
+    "manifests/dns-cert-api-service.yaml"
 )
 
 # Iterate over the list and apply each manifest.

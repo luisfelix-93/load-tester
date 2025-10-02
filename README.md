@@ -1,8 +1,6 @@
-# 💫 Load Tester - A Distributed Load Testing Tool
+# 💫 Support.io
 
-This project is a distributed load testing application built with a microservices architecture. The system is composed of a **React** frontend, a **Node.js/TypeScript** API, and a separate **Node.js/TypeScript** worker to run the load tests.
-
-The tool allows you to send a configurable number of HTTP requests to a target URL and view performance statistics and charts.
+Support.io is a multifunctional platform designed to help developers and system administrators ensure the performance, reliability, and security of their web applications. Built with a microservices architecture, the project offers a set of tools integrated into a single interface.
 
 ---
 
@@ -27,6 +25,39 @@ The Health Check system is also designed with a microservices architecture, cons
 *   **`worker-api` (`luisffilho/health-check-worker`):** This is a dedicated worker service that periodically performs the health checks on the user-defined URLs. Separating this functionality ensures that the main application is not impacted by the monitoring tasks.
 
 This monitoring feature is accessible through the same frontend application, providing a unified interface for both load testing and health checking. 
+
+---
+### DNS & SSL Health Checker
+The DNS & Certificate Analysis API is a service for analyzing DNS records and security certificates of a given domain.
+
+#### Functionalities
+- Analyzes the DNS records of a domain.
+- Analyzes the security certificate of a domain.
+- Stores the history of analyses in a MongoDB database.
+- Provides an endpoint to consult the history of analyses.
+
+#### Project Architecture
+The project architecture follows a layered approach, separating responsibilities to facilitate maintenance and scalability.
+- `cmd/api/main.go`: This is the entry point of the application. It is responsible for initializing dependencies (such as the database connection and services), configuring the HTTP request router, and starting the server.
+- `pkg/`: Contains all the business logic of the application, divided into sub-packages:
+    - `router`: Defines the API routes and associates them with their respective `handlers`.
+    - `handler`: Layer responsible for receiving HTTP requests, validating input data, calling the appropriate services, and returning responses.
+    - `analysis`: Contains the main business logic for DNS and certificate analysis.
+    - `database`: Abstracts the communication with the MongoDB database, providing methods to create, read, update, and delete records.
+- `configs/`: Stores the application's configuration files, such as `config.yaml`.
+
+The flow of a request is as follows:
+1. The request arrives at a route defined in the `router` package.
+2. The `router` directs the request to the corresponding `handler`.
+3. The `handler` processes the request, interacting with the `analysis` service to execute the business logic.
+4. The `analysis` service uses the `database` package to persist or query data.
+5. The `handler` formulates the response and sends it back to the client.
+
+#### API Endpoints
+- `POST /api/v1/analyze`: Starts a new analysis for a domain.
+- `GET /api/v1/history/{target}`: Returns the analysis history for a domain.
+- `GET /health`: Checks the API status.
+
 ## 📦 Technologies Used
 
 -   **Frontend (`load-tester-app`)**
@@ -40,6 +71,10 @@ This monitoring feature is accessible through the same frontend application, pro
     -   Node.js
     -   TypeScript
     -   Express (for the API)
+
+-   **DNS & Certificate Analysis API (`dns-cert-api`)**
+    -   Go
+    -   MongoDB
 
 -   **DevOps**
     -   Docker & Docker Swarm
