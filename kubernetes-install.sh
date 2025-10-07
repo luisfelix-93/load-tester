@@ -51,8 +51,8 @@ MANIFESTS=(
     "manifests/loadtest-worker-deployment.yaml"
     "manifests/frontend-deployment.yaml"
     "manifests/loadtest-worker-hpa.yaml"
-    "manifests/dns-cert-api-deployment.yaml"
-    "manifests/dns-cert-api-service.yaml"
+    "manifests/dns-cert-deployment.yaml"
+    "manifests/dns-cert-service.yaml"
 )
 
 # Iterate over the list and apply each manifest.
