@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: dns-cert-api
-        image: luisffilho/dns-cert-api:hmlk8s
+        image: luisffilho/dns-cert-api:20251002
         ports:
         - containerPort: 8080
         env:

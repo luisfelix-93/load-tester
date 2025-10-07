@@ -92,7 +92,7 @@ services:
           memory: 256M
 
   loadtest-app:
-    image: luisffilho/load-tester-app:20250825
+    image: luisffilho/load-tester-app:20251001
     ports:
       - "5173:5173"
     networks:
@@ -144,7 +144,7 @@ services:
           cpus: '1'
           memory: 512M
   dns-cert-api:
-    image: luisffilho/dns-cert-api:20251001
+    image: luisffilho/dns-cert-api:20251002
     environment:
       - MONGO_URI:mongodb=//mongo:27017
       - MONGO_DATABASE=dns-cert-db
