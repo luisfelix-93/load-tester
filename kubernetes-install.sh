@@ -27,8 +27,12 @@ if ! kind get clusters | grep -q "load-tester"; then
 else
     echo "Kind cluster 'load-tester' already exists."
 fi
+echo "Creating the kubernetes-dashboard namespace ..."
+
+kubectl create namespace kubernetes-dashboard
 
 echo "Applying Kubernetes manifests from ${GITHUB_RAW_URL}..."
+
 
 # List of manifests to be applied in the correct order.
 MANIFESTS=(
