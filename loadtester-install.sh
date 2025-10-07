@@ -37,8 +37,8 @@ services:
           cpus: '0.25'
           memory: 256M
         limits:
-          cpus: '2'
-          memory: 2G
+          cpus: '1'
+          memory: 1G
   
   redis:
     image: redis:latest
@@ -92,7 +92,7 @@ services:
           memory: 256M
 
   loadtest-app:
-    image: luisffilho/load-tester-app:20250825
+    image: luisffilho/load-tester-app:20251001
     ports:
       - "5173:5173"
     networks:
@@ -143,10 +143,29 @@ services:
         limits:
           cpus: '1'
           memory: 512M
-
+  dns-cert-api:
+    image: luisffilho/dns-cert-api:20251002
+    environment:
+      - MONGO_URI:mongodb=//mongo:27017
+      - MONGO_DATABASE=dns-cert-db
+      - MONGO_COLLECTION=analyze-results
+      - SERVER_PORT=:8080
+    ports:
+      - '8080:8080'
+    networks:
+      - loadtest-net
+    deploy:
+      resources:
+        reservations:
+          cpus: '0.1'
+          memory: '64M'
+        limits:
+          cpus: '0.5'
+          memory: '128M'
 networks:
   loadtest-net:
     driver: overlay
+
 
 EOF
 

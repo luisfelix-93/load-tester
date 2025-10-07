@@ -8,3 +8,6 @@ CHANGELOG.md
 log.txt
 PR_Summary.md
 dockerfile
+CODE_REVIEW.md
+loki-*
+prometheus-*

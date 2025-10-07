@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: dns-cert-api
+spec:
+  selector:
+    matchLabels:
+      app: dns-cert-api
+  template:
+    metadata:
+      labels:
+        app: dns-cert-api
+    spec:
+      containers:
+      - name: dns-cert-api
+        image: luisffilho/dns-cert-api:20251002
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MONGO_URI
+          value: "mongodb://mongo-svc:27017/"
+        - name: MONGO_DATABASE
+          value: "dns-cert-db"
+        - name: MONGO_COLLECTION
+          value: "analyze-results"
+        - name: "SERVER_PORT"
+          value: ":8080"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+

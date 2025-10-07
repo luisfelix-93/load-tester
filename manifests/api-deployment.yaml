@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: loadtest-api
-        image: luisffilho/load-tester-api:20250818
+        image: luisffilho/load-tester-api:hml-k8s
         ports:
         - containerPort: 4000
         env:

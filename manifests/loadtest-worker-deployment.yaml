@@ -13,7 +13,7 @@ spec:
     spec:
       containers:
       - name: loadtest-worker
-        image: luisffilho/load-tester-worker:20250818
+        image: luisffilho/load-tester-worker:20250920
         env:
         - name: REDIS_PORT
           value: "6379"

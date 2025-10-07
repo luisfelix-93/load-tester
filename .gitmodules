@@ -7,3 +7,6 @@
 [submodule "load-tester-worker"]
 	path = load-tester-worker
 	url = https://github.com/luisfelix-93/load-tester-worker
+[submodule "dns-cert-api"]
+	path = dns-cert-api
+	url = https://github.com/luisfelix-93/dns-cert-api
